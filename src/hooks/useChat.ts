@@ -1,5 +1,11 @@
 // ============================================================
-// useChat — Chat logic, API communication, and message state
+// useChat — Token-efficient chat logic
+//
+// Token-saving strategies:
+//  1. SLIDING WINDOW — only last CONTEXT_WINDOW messages sent to API
+//  2. COMPRESSED HISTORY — AI messages sent as text-only (no pinyin/
+//     translation/correction, those are UI-only fields)
+//  3. LEAN SYSTEM PROMPT — concise instructions, no padding
 // ============================================================
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -7,18 +13,14 @@ import type { Message } from '../types';
 import { getItem, setItem } from '../utils/storage';
 import { DEFAULT_GREETING } from '../types';
 
-const SYSTEM_PROMPT = `Kamu adalah 'Ziyan', tutor dan teman ngobrol bahasa Mandarin. Pengguna sedang belajar bahasa Mandarin.
-Tugasmu:
-1. Membalas chat pengguna dengan bahasa Mandarin yang senatural mungkin.
-2. Jika pengguna melakukan kesalahan tata bahasa atau pemilihan kata, berikan koreksi. Jika tidak ada kesalahan, isi dengan string kosong ''.
-3. Format balasanmu WAJIB berupa JSON dengan struktur:
-{
-  "text": "(balasan bahasa Mandarin, gunakan aksara Hanzi)",
-  "pinyin": "(pinyin dari balasan)",
-  "translation": "(terjemahan balasan dalam bahasa Indonesia)",
-  "correction": "(penjelasan koreksi dalam bahasa Indonesia, jika ada)"
-}
-Jangan tambahkan markdown \`\`\`json, kembalikan json murni.`;
+// Maximum number of past messages to send as context.
+// Each exchange (user + AI) = 2 messages, so 8 = last 4 exchanges.
+const CONTEXT_WINDOW = 8;
+
+// Lean system prompt — same meaning, ~40% fewer tokens
+const SYSTEM_PROMPT = `Kamu adalah Ziyan, tutor Mandarin. Balas SELALU dengan JSON murni tanpa markdown:
+{"text":"<Hanzi>","pinyin":"<pinyin>","translation":"<terjemahan Indonesia>","correction":"<koreksi jika ada, atau string kosong>"}
+Koreksi kesalahan grammar jika ada. Sesuaikan tingkat kesulitan dengan level pengguna.`;
 
 export function useChat(hskLevel: number = 1) {
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -28,12 +30,10 @@ export function useChat(hskLevel: number = 1) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Persist messages on change
   useEffect(() => {
     setItem('current_messages', messages);
   }, [messages]);
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
@@ -48,11 +48,38 @@ export function useChat(hskLevel: number = 1) {
     }
   }, []);
 
+  /**
+   * Build a token-efficient history for the API.
+   *
+   * - Takes only the last CONTEXT_WINDOW messages (sliding window).
+   * - For AI messages, only sends `text` (Hanzi) — NOT pinyin/translation/
+   *   correction, which are UI-only and waste tokens.
+   * - Ensures the sequence always starts with a user turn (Gemini requirement).
+   */
+  const buildHistory = useCallback((allMessages: Message[]) => {
+    // Slice to window, always include the latest user message (last item)
+    const windowed = allMessages.slice(-CONTEXT_WINDOW);
+
+    const contents = windowed.map(msg => ({
+      role: msg.sender === 'user' ? 'user' : 'model',
+      // For AI: only the Chinese text — pinyin/translation are for the UI only
+      parts: [{ text: msg.text }],
+    }));
+
+    // Gemini requires the conversation to start with a user turn
+    if (contents.length > 0 && contents[0].role === 'model') {
+      contents.unshift({
+        role: 'user',
+        parts: [{ text: '开始' }], // "Begin" — minimal bootstrap token cost
+      });
+    }
+
+    return contents;
+  }, []);
+
   const buildSystemPrompt = useCallback(() => {
-    const levelHint = hskLevel > 1
-      ? `\nNota: pengguna berada di level HSK ${hskLevel}. Sesuaikan kompleksitas kosakata dan tata bahasa.`
-      : '';
-    return SYSTEM_PROMPT + levelHint;
+    const levelNote = hskLevel > 1 ? ` Pengguna di HSK ${hskLevel}.` : '';
+    return SYSTEM_PROMPT + levelNote;
   }, [hskLevel]);
 
   const sendMessage = useCallback(async (
@@ -75,31 +102,6 @@ export function useChat(hskLevel: number = 1) {
     setIsLoading(true);
 
     try {
-      // Build conversation history for Gemini
-      let historyContents = newMessages.map(msg => {
-        let contentText = msg.text;
-        if (msg.sender === 'ai') {
-          contentText = JSON.stringify({
-            text: msg.text,
-            pinyin: msg.pinyin,
-            translation: msg.translation,
-            correction: msg.correction,
-          });
-        }
-        return {
-          role: msg.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: contentText }],
-        };
-      });
-
-      // Gemini API requires the first message to be from the user
-      if (historyContents.length > 0 && historyContents[0].role === 'model') {
-        historyContents.unshift({
-          role: 'user',
-          parts: [{ text: 'Halo, mari kita mulai belajar bahasa Mandarin.' }],
-        });
-      }
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,7 +109,7 @@ export function useChat(hskLevel: number = 1) {
           systemInstruction: {
             parts: [{ text: buildSystemPrompt() }],
           },
-          contents: historyContents,
+          contents: buildHistory(newMessages),
         }),
       });
 
@@ -118,23 +120,22 @@ export function useChat(hskLevel: number = 1) {
       }
 
       const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
       if (!aiText) throw new Error('No response from AI');
 
-      let cleanText = aiText.trim();
-      if (cleanText.startsWith('```json')) {
-        cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
-      } else if (cleanText.startsWith('```')) {
-        cleanText = cleanText.replace(/```/g, '').trim();
-      }
+      // Strip any markdown fences the model may add despite instructions
+      const cleanText = aiText.trim()
+        .replace(/^```json\n?/, '')
+        .replace(/^```\n?/, '')
+        .replace(/\n?```$/, '')
+        .trim();
 
       try {
         const parsed = JSON.parse(cleanText);
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: parsed.text || '抱歉，我没听懂。',
-          pinyin: parsed.pinyin || 'Bàoqiàn, wǒ méi tīng dǒng.',
-          translation: parsed.translation || 'Maaf, saya tidak mengerti.',
+          pinyin: parsed.pinyin || '',
+          translation: parsed.translation || '',
           correction: parsed.correction || '',
           sender: 'ai',
           timestamp: Date.now(),
@@ -143,7 +144,6 @@ export function useChat(hskLevel: number = 1) {
         playAudio(aiMessage.text);
         onAiResponse?.(aiMessage);
       } catch {
-        // If JSON parse fails, use raw text
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: cleanText,
@@ -155,20 +155,19 @@ export function useChat(hskLevel: number = 1) {
         onAiResponse?.(aiMessage);
       }
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      const errorMessage: Message = {
+      console.error('API Error:', error);
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         text: '抱歉，系统出现了一些问题。',
         pinyin: 'Bàoqiàn, xìtǒng chūxiàn le yīxiē wèntí.',
-        translation: 'Maaf, terjadi kesalahan pada sistem. Silakan coba lagi.',
+        translation: 'Maaf, terjadi kesalahan. Silakan coba lagi.',
         sender: 'ai',
         timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      }]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, playAudio, buildSystemPrompt]);
+  }, [messages, isLoading, playAudio, buildSystemPrompt, buildHistory]);
 
   const clearChat = useCallback(() => {
     setMessages([DEFAULT_GREETING]);
