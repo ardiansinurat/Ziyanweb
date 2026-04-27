@@ -131,7 +131,8 @@ function App() {
         });
       }
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyBd1MY7h-N44KXahIvYMq402KQJfL05dPc`, {
+      // Request dikirim ke Vercel Serverless Function (/api/chat.ts)
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
