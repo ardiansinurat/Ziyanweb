@@ -2,7 +2,7 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req) {
+export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { 
       status: 405,
@@ -34,8 +34,9 @@ export default async function handler(req) {
       status: response.status,
       headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
