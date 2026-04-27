@@ -7,6 +7,7 @@ import { ProfileCard } from './ProfileCard';
 import { StatsGrid } from './StatsGrid';
 import { VocabNotebook } from './VocabNotebook';
 import { DailyReminder } from './DailyReminder';
+import { DailyWordCard } from './DailyWordCard';
 
 interface Props {
   userName: string;
@@ -59,6 +60,8 @@ export function Sidebar({
           accuracy={accuracy}
           totalWords={totalWords}
         />
+
+        <DailyWordCard playAudio={playAudio} />
 
         <DailyReminder
           dailyCount={dailyCount}

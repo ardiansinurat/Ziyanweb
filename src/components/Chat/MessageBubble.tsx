@@ -12,6 +12,7 @@ interface Props {
   playAudio: (text: string) => void;
   isWordSaved?: (hanzi: string) => boolean;
   onSaveWord?: (hanzi: string) => void;
+  onShowCharacter?: (char: string) => void;
 }
 
 function formatTime(timestamp: number): string {
@@ -29,7 +30,7 @@ function formatTime(timestamp: number): string {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 }
 
-export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord }: Props) {
+export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord, onShowCharacter }: Props) {
   const { showToast } = useToast();
   const isAi = message.sender === 'ai';
 
@@ -55,7 +56,23 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
 
         {/* Main text */}
         <div className="text-content">
-          <span>{message.text}</span>
+          <span className="msg-text">
+            {message.text.split('').map((char, i) => {
+              const isHanzi = /[\u4E00-\u9FA5]/.test(char);
+              return isHanzi ? (
+                <span 
+                  key={i} 
+                  className="clickable-hanzi" 
+                  onClick={() => onShowCharacter?.(char)}
+                  title="Lihat urutan guratan"
+                >
+                  {char}
+                </span>
+              ) : (
+                <span key={i}>{char}</span>
+              );
+            })}
+          </span>
           {isAi && (
             <div className="message-actions">
               <button

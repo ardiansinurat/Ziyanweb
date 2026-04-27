@@ -20,6 +20,7 @@ interface Props {
   isWordSaved: (hanzi: string) => boolean;
   onSaveWord: (hanzi: string) => void;
   onToggleSidebar?: () => void;
+  onShowCharacter?: (char: string) => void;
 }
 
 export function ChatPanel({
@@ -32,6 +33,7 @@ export function ChatPanel({
   isWordSaved,
   onSaveWord,
   onToggleSidebar,
+  onShowCharacter,
 }: Props) {
   const [showTranslations, setShowTranslations] = useState(true);
 
@@ -63,6 +65,7 @@ export function ChatPanel({
             playAudio={playAudio}
             isWordSaved={isWordSaved}
             onSaveWord={onSaveWord}
+            onShowCharacter={onShowCharacter}
           />
         ))}
 

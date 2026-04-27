@@ -15,6 +15,7 @@ import { getItem, setItem, migrateLegacyStorage } from './utils/storage';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Modals/SettingsModal';
+import { CharacterModal } from './components/Modals/CharacterModal';
 import { useToast } from './components/UI/Toast';
 
 // Run once on first load
@@ -27,6 +28,7 @@ function App() {
   const [hskLevel, setHskLevel] = useState(() => getItem<number>('profile_hsk', 1));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedChar, setSelectedChar] = useState<string | null>(null);
 
   // === Hooks ===
   const { theme, setTheme } = useTheme();
@@ -124,6 +126,7 @@ function App() {
           isWordSaved={isWordSaved}
           onSaveWord={handleSaveWord}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onShowCharacter={setSelectedChar}
         />
       </div>
 
@@ -135,6 +138,11 @@ function App() {
         theme={theme}
         hskLevel={hskLevel}
         onSave={handleSettingsSave}
+      />
+      
+      <CharacterModal
+        character={selectedChar}
+        onClose={() => setSelectedChar(null)}
       />
     </>
   );
