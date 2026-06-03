@@ -2143,3 +2143,108 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ── Chat Message Search ─────────────────────────────────────── */
+.chat-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+  animation: slideDown 0.15s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chat-search-input {
+  flex: 1;
+  background: var(--glass-border);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  outline: none;
+}
+.chat-search-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.message-search-highlight {
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+/* ── Vocab Sort Row ──────────────────────────────────────────── */
+.vocab-sort-row {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  flex-wrap: wrap;
+}
+.vocab-sort-btn {
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.vocab-sort-btn.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── Quick Theme Toggle ──────────────────────────────────────── */
+.quick-theme-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s, background 0.2s;
+}
+.quick-theme-btn:hover {
+  color: var(--primary);
+  background: var(--glass-border);
+}
+
+/* ── Message Reactions ───────────────────────────────────────── */
+.message-reactions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.reaction-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+}
+.reaction-btn:hover, .reaction-btn.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.reaction-btn.active {
+  font-weight: 700;
+}
