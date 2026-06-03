@@ -2080,3 +2080,9 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
 .goal-selector { display: flex; gap: 8px; flex-wrap: wrap; }
 .goal-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
 .goal-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+/* ===== Suggested Reply Chips ===== */
+.suggested-replies { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 16px 12px; }
+.suggested-reply-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.suggested-reply-chip:hover:not(:disabled) { background: var(--primary); color: #fff; }
+.suggested-reply-chip:disabled { opacity: 0.5; cursor: not-allowed; }

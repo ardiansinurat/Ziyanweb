@@ -10,6 +10,47 @@ import { TypingIndicator } from './TypingIndicator';
 import { ChatInput } from './ChatInput';
 import { QuickPhrases } from './QuickPhrases';
 
+// ---- Suggested Replies ----
+
+function getSuggestions(msg: Message): string[] {
+  const hasTip = !!(msg.tip && msg.tip.trim());
+  const hasCorrection = !!(msg.correction && msg.correction.trim());
+
+  const always = ['Beri saya contoh kalimat lain', 'Ajarkan kata baru'];
+  const tips: string[] = [];
+
+  if (hasCorrection) tips.push('Jelaskan lebih detail koreksinya');
+  if (hasTip) tips.push('Jelaskan lebih lanjut tipsnya');
+  if (!hasCorrection && !hasTip) tips.push('Koreksi kalimat saya');
+
+  // Return 3 distinct suggestions
+  return [...tips, ...always].slice(0, 3);
+}
+
+interface SuggestedRepliesProps {
+  message: Message;
+  onSelect: (text: string) => void;
+  disabled: boolean;
+}
+
+function SuggestedReplies({ message, onSelect, disabled }: SuggestedRepliesProps) {
+  const suggestions = getSuggestions(message);
+  return (
+    <div className="suggested-replies">
+      {suggestions.map((s, i) => (
+        <button
+          key={i}
+          className="suggested-reply-chip"
+          onClick={() => onSelect(s)}
+          disabled={disabled}
+        >
+          {s}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 interface Props {
   messages: Message[];
   isLoading: boolean;
@@ -38,6 +79,7 @@ export function ChatPanel({
   const [showTranslations, setShowTranslations] = useState(true);
 
   const hasMessages = messages.length > 1; // More than just greeting
+  const lastAiMsg = [...messages].reverse().find(m => m.sender === 'ai');
 
   const handleExport = useCallback(() => {
     const lines = messages.map(m => {
@@ -103,6 +145,14 @@ export function ChatPanel({
             onShowCharacter={onShowCharacter}
           />
         ))}
+
+        {lastAiMsg && !isLoading && hasMessages && (
+          <SuggestedReplies
+            message={lastAiMsg}
+            onSelect={onSend}
+            disabled={isLoading}
+          />
+        )}
 
         {isLoading && <TypingIndicator />}
         <div ref={messagesEndRef} />

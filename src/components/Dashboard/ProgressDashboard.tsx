@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import type { UserStats, VocabWord } from '../../types';
-import { useActivityHistory } from '../../hooks/useActivityHistory';
+import { useActivityHistory, type DailyActivity } from '../../hooks/useActivityHistory';
 import './dashboard.css';
 
 interface ProgressDashboardProps {
@@ -204,15 +204,65 @@ function CircularProgress({
   );
 }
 
+// ── Activity Heatmap ─────────────────────────────────────────
+function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
+  function getCellOpacity(messages: number): number {
+    if (messages === 0) return 0;
+    if (messages < 5) return 0.3;
+    if (messages < 10) return 0.65;
+    return 1;
+  }
+
+  const activeDays = days.filter(d => d.messages > 0).length;
+  const today = new Date().toISOString().split('T')[0];
+
+  return (
+    <div className="activity-heatmap">
+      <div className="heatmap-grid">
+        {days.map((day) => {
+          const opacity = getCellOpacity(day.messages);
+          const isTodayCell = day.date === today;
+          return (
+            <div
+              key={day.date}
+              className={`heatmap-cell${isTodayCell ? ' heatmap-today' : ''}`}
+              style={{
+                background: opacity > 0 ? `var(--primary)` : 'var(--glass-border)',
+                opacity: opacity > 0 ? opacity : 0.4,
+              }}
+              title={`${day.date}: ${day.messages} pesan`}
+            />
+          );
+        })}
+      </div>
+      <div className="heatmap-legend">
+        <span className="heatmap-active-days">{activeDays}/30 hari aktif</span>
+        <div className="heatmap-scale">
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sedikit</span>
+          {[0.3, 0.65, 1].map(op => (
+            <div
+              key={op}
+              className="heatmap-cell"
+              style={{ background: 'var(--primary)', opacity: op }}
+            />
+          ))}
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Banyak</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ───────────────────────────────────────────
 export default function ProgressDashboard({
   stats,
   accuracy,
   words,
 }: ProgressDashboardProps) {
-  const { getLast7Days } = useActivityHistory();
+  const { getLast7Days, getLast30Days } = useActivityHistory();
 
   const last7 = getLast7Days();
+  const last30 = getLast30Days();
   const maxMessages = Math.max(...last7.map(d => d.messages), 1);
   const hasActivity = last7.some(d => d.messages > 0);
 
@@ -364,6 +414,12 @@ export default function ProgressDashboard({
             <p className="chart-empty-hint">Mulai chat untuk merekam aktivitas!</p>
           </div>
         )}
+      </section>
+
+      {/* ── Activity Heatmap ── */}
+      <section className="dashboard-section glass-panel">
+        <h3 className="section-title">Aktivitas 30 Hari</h3>
+        <ActivityHeatmap days={last30} />
       </section>
 
       {/* ── Learning Progress ── */}
