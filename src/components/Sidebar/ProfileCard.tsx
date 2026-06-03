@@ -2,7 +2,7 @@
 // ProfileCard — User profile display in sidebar
 // ============================================================
 
-import { Settings } from 'lucide-react';
+import { Settings, Sun, Moon } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 
 // XP thresholds for levels 1–10 (mirrors useStats)
@@ -15,9 +15,11 @@ interface Props {
   xp?: number;
   level?: number;
   onOpenSettings: () => void;
+  theme?: string;
+  onToggleTheme?: () => void;
 }
 
-export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenSettings }: Props) {
+export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenSettings, theme, onToggleTheme }: Props) {
   const prevLevel = useRef(level);
   const [showAnim, setShowAnim] = useState(false);
 
@@ -89,6 +91,15 @@ export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenS
           </span>
         </div>
       </div>
+      {onToggleTheme && (
+        <button
+          className="quick-theme-btn"
+          onClick={onToggleTheme}
+          title={theme?.startsWith('dark') ? 'Mode Terang' : 'Mode Gelap'}
+        >
+          {theme?.startsWith('dark') ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+      )}
       <button className="btn-icon" onClick={onOpenSettings} title="Pengaturan">
         <Settings size={20} />
       </button>

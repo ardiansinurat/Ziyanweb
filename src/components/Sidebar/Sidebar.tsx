@@ -29,6 +29,8 @@ interface Props {
   level?: number;
   vocabWords: VocabWord[];
   onOpenSettings: () => void;
+  theme?: string;
+  onToggleTheme?: () => void;
   onRemoveWord: (id: string) => void;
   onAddWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
   onSaveDailyWord?: (word: WordObj) => void;
@@ -77,6 +79,8 @@ export function Sidebar({
   level,
   vocabWords,
   onOpenSettings,
+  theme,
+  onToggleTheme,
   onRemoveWord,
   onAddWord,
   onSaveDailyWord,
@@ -97,6 +101,8 @@ export function Sidebar({
           xp={xp}
           level={level}
           onOpenSettings={onOpenSettings}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
         />
 
         <StatsGrid
