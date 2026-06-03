@@ -14,6 +14,10 @@
   --success: #a8e6cf;
   --warning: #ffd3b6;
   --shadow-color: rgba(166, 193, 238, 0.4);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
 
 [data-theme='light-vintage'] {
@@ -29,6 +33,10 @@
   --success: #b3c0a4;
   --warning: #e2c285;
   --shadow-color: rgba(139, 125, 120, 0.2);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
 
 [data-theme='light-minimalist'] {
@@ -44,6 +52,10 @@
   --success: #84fab0;
   --warning: #fccb90;
   --shadow-color: rgba(0, 0, 0, 0.05);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
 
 [data-theme='dark-astronaut'] {
@@ -59,6 +71,10 @@
   --success: #34d399;
   --warning: #fbbf24;
   --shadow-color: rgba(0, 0, 0, 0.6);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
 
 [data-theme='dark-bintang'] {
@@ -74,6 +90,10 @@
   --success: #10b981;
   --warning: #f59e0b;
   --shadow-color: rgba(251, 191, 36, 0.2);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
 
 [data-theme='dark-aurora'] {
@@ -89,7 +109,15 @@
   --success: #6ee7b7;
   --warning: #fcd34d;
   --shadow-color: rgba(52, 211, 153, 0.3);
+  --tone-1: #e85858;
+  --tone-2: #e5872a;
+  --tone-3: #2d9e4e;
+  --tone-4: #3b7de8;
 }
+
+/* Pinyin tone coloring */
+.pinyin-syllable { display: inline; }
+.pinyin-syllable + .pinyin-syllable::before { content: ' '; }
 
 /* Custom Dropdown UI */
 .custom-dropdown-container {
