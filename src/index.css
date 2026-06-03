@@ -2248,3 +2248,58 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
 .reaction-btn.active {
   font-weight: 700;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 5 — DailyWordCard stroke animation
+   ═══════════════════════════════════════════════════════════ */
+.daily-word-stroke-btn {
+  align-self: center;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.daily-word-stroke-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.daily-word-stroke-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 5 — TabNav SRS badge
+   ═══════════════════════════════════════════════════════════ */
+.tab-btn { position: relative; }
+.tab-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}
