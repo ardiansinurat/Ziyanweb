@@ -2318,3 +2318,52 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
   color: var(--warning);
   font-weight: 600;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 7 — Stats copy button & flashcard speed control
+   ═══════════════════════════════════════════════════════════ */
+.stats-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.stats-copy-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.speed-btn {
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.speed-btn.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+.speed-btn:hover:not(.active) {
+  border-color: var(--text-muted);
+  color: var(--text-main);
+}
