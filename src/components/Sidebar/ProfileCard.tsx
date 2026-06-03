@@ -3,6 +3,7 @@
 // ============================================================
 
 import { Settings } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
 
 // XP thresholds for levels 1–10 (mirrors useStats)
 const LEVEL_THRESHOLDS = [0, 100, 250, 500, 900, 1400, 2000, 2700, 3500, 4500];
@@ -17,6 +18,17 @@ interface Props {
 }
 
 export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenSettings }: Props) {
+  const prevLevel = useRef(level);
+  const [showAnim, setShowAnim] = useState(false);
+
+  useEffect(() => {
+    if (level > (prevLevel.current ?? level)) {
+      setShowAnim(true);
+      setTimeout(() => setShowAnim(false), 700);
+    }
+    prevLevel.current = level;
+  }, [level]);
+
   const currentThreshold = LEVEL_THRESHOLDS[level - 1] ?? 0;
   const nextThreshold = LEVEL_THRESHOLDS[level] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
   const progressPct = level >= LEVEL_THRESHOLDS.length
@@ -34,6 +46,7 @@ export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenS
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
           <span
+            className={showAnim ? 'level-up-anim' : undefined}
             style={{
               fontSize: '0.65rem',
               fontWeight: 700,
@@ -43,6 +56,7 @@ export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenS
               padding: '1px 5px',
               flexShrink: 0,
               letterSpacing: '0.03em',
+              display: 'inline-block',
             }}
           >
             Lv.{level}

@@ -49,9 +49,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastItem({ toast, onRemove }: { toast: ToastItem; onRemove: (id: string) => void }) {
   useEffect(() => {
-    const timer = setTimeout(() => onRemove(toast.id), 3000);
+    const duration = toast.message.includes('Level Up') ? 6000 : 3000;
+    const timer = setTimeout(() => onRemove(toast.id), duration);
     return () => clearTimeout(timer);
-  }, [toast.id, onRemove]);
+  }, [toast.id, toast.message, onRemove]);
 
   const icons = {
     success: <Check size={16} />,
