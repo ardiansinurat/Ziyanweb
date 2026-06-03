@@ -9,6 +9,7 @@ import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
 import { getItem, setItem } from '../../utils/storage';
+import { ColorizePinyin } from '../../utils/toneColor';
 import './flashcard.css';
 
 interface FlashcardViewProps {
@@ -73,7 +74,7 @@ function StudyCard({ hanzi, pinyin, meaning, example, isFlipped, onFlip, onPlayA
           <div className="flashcard-hanzi" style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
             {hanzi}
           </div>
-          <div className="flashcard-pinyin">{pinyin}</div>
+          <div className="flashcard-pinyin"><ColorizePinyin pinyin={pinyin} /></div>
           <div className="flashcard-divider" />
           <div className="flashcard-meaning">{meaning}</div>
           {example ? (
@@ -550,10 +551,16 @@ export default function FlashcardView({
                   </button>
                 ))}
               </div>
-              {/* Keyboard hint */}
+              {/* Keyboard hints */}
               {state.mode === 'study' && !state.isComplete && deck.length > 0 && (
-                <div className="flashcard-keyboard-hint">
-                  <kbd>Space</kbd> balik · <kbd>→</kbd> tahu · <kbd>←</kbd> tidak tahu
+                <div className="flashcard-keyboard-hints">
+                  <span className="key-hint"><span className="key-badge">Space</span> Balik</span>
+                  {state.isFlipped && (
+                    <>
+                      <span className="key-hint"><span className="key-badge">←</span> Salah</span>
+                      <span className="key-hint"><span className="key-badge">→</span> Benar</span>
+                    </>
+                  )}
                 </div>
               )}
               {/* SRS interval hint (shown when card is flipped and has SRS data) */}
@@ -580,12 +587,23 @@ export default function FlashcardView({
               )}
             </>
           ) : (
-            <QuizCard
-              hanzi={currentCard.hanzi}
-              options={quizOptions}
-              onAnswer={handleQuizAnswer}
-              answered={answeredId}
-            />
+            <>
+              <QuizCard
+                hanzi={currentCard.hanzi}
+                options={quizOptions}
+                onAnswer={handleQuizAnswer}
+                answered={answeredId}
+              />
+              {answeredId === null && (
+                <div className="flashcard-keyboard-hints">
+                  {quizOptions.map((_, i) => (
+                    <span key={i} className="key-hint">
+                      <span className="key-badge">{i + 1}</span> Pilih
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
