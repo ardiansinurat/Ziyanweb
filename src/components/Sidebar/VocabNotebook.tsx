@@ -3,7 +3,7 @@
 // ============================================================
 
 import { useState, useMemo } from 'react';
-import { BookmarkX, Volume2, Search, Download, BookOpen } from 'lucide-react';
+import { BookmarkX, Volume2, Search, Download, BookOpen, Plus } from 'lucide-react';
 import type { VocabWord } from '../../types';
 import { useToast } from '../UI/Toast';
 
@@ -11,6 +11,7 @@ interface Props {
   words: VocabWord[];
   onRemove: (id: string) => void;
   playAudio: (text: string) => void;
+  onAddWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
 }
 
 type SortOption = 'newest' | 'oldest' | 'az';
@@ -29,11 +30,24 @@ const SOURCE_LABELS: Record<SourceFilter, string> = {
   manual: 'Manual',
 };
 
-export function VocabNotebook({ words, onRemove, playAudio }: Props) {
+function playWord(hanzi: string) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(hanzi);
+  u.lang = 'zh-CN';
+  u.rate = 0.9;
+  window.speechSynthesis.speak(u);
+}
+
+export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWord }: Props) {
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newHanzi, setNewHanzi] = useState('');
+  const [newPinyin, setNewPinyin] = useState('');
+  const [newMeaning, setNewMeaning] = useState('');
 
   const filtered = useMemo(() => {
     let result = [...words];
@@ -136,6 +150,59 @@ export function VocabNotebook({ words, onRemove, playAudio }: Props) {
         </select>
       </div>
 
+      {/* Add word button */}
+      {onAddWord && (
+        <button
+          className="vocab-add-btn"
+          onClick={() => setShowAddForm(!showAddForm)}
+          title="Tambah kata"
+        >
+          <Plus size={14} /> Tambah
+        </button>
+      )}
+
+      {/* Add word form */}
+      {showAddForm && onAddWord && (
+        <div className="vocab-add-form">
+          <input
+            className="form-input"
+            placeholder="Hanzi (e.g. 你好)"
+            value={newHanzi}
+            onChange={e => setNewHanzi(e.target.value)}
+          />
+          <input
+            className="form-input"
+            placeholder="Pinyin (e.g. nǐ hǎo)"
+            value={newPinyin}
+            onChange={e => setNewPinyin(e.target.value)}
+          />
+          <input
+            className="form-input"
+            placeholder="Arti dalam Indonesia"
+            value={newMeaning}
+            onChange={e => setNewMeaning(e.target.value)}
+          />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn-primary"
+              style={{ flex: 1, marginTop: 0, padding: '8px' }}
+              onClick={() => {
+                if (newHanzi.trim() && newMeaning.trim()) {
+                  onAddWord({ hanzi: newHanzi.trim(), pinyin: newPinyin.trim(), meaning: newMeaning.trim(), source: 'manual' });
+                  setNewHanzi(''); setNewPinyin(''); setNewMeaning('');
+                  setShowAddForm(false);
+                }
+              }}
+            >
+              Simpan
+            </button>
+            <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowAddForm(false)}>
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Word list */}
       <div className="vocab-list">
         {filtered.length === 0 ? (
@@ -149,8 +216,8 @@ export function VocabNotebook({ words, onRemove, playAudio }: Props) {
                   <span className="vocab-pinyin">{word.pinyin}</span>
                 </div>
                 <div className="vocab-item-actions">
-                  <button className="msg-action-btn" onClick={() => playAudio(word.hanzi)} title="Dengarkan">
-                    <Volume2 size={12} />
+                  <button className="vocab-audio-btn" onClick={() => playWord(word.hanzi)} title="Dengarkan">
+                    <Volume2 size={13} />
                   </button>
                   <button className="msg-action-btn" onClick={() => onRemove(word.id)} title="Hapus">
                     <BookmarkX size={12} />

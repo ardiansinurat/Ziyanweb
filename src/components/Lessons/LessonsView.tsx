@@ -18,6 +18,7 @@ import {
   type Lesson,
 } from '../../data/lessons';
 import { getItem, setItem } from '../../utils/storage';
+import { ColorizePinyin } from '../../utils/toneColor';
 import './lessons.css';
 
 // ── Props ─────────────────────────────────────────────────────
@@ -200,7 +201,7 @@ function VocabTab({ lesson }: { lesson: Lesson }) {
           <tr key={i} className="vocab-row">
             <td>
               <div className="vocab-hanzi">{v.hanzi}</div>
-              <div className="vocab-pinyin">{v.pinyin}</div>
+              <div className="vocab-pinyin"><ColorizePinyin pinyin={v.pinyin} /></div>
             </td>
             <td>
               <div className="vocab-meaning">{v.meaning}</div>

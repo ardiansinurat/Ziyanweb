@@ -7,6 +7,7 @@ import { Volume2, AlertCircle, Lightbulb, Copy, BookmarkPlus, BookmarkCheck, Thu
 import type { Message } from '../../types';
 import { useToast } from '../UI/Toast';
 import { getItem, setItem } from '../../utils/storage';
+import { ColorizePinyin } from '../../utils/toneColor';
 
 interface Props {
   message: Message;
@@ -82,7 +83,9 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
       <div className="message-bubble">
         {/* Pinyin line */}
         {isAi && message.pinyin && (
-          <span className="pinyin">{message.pinyin}</span>
+          <span className="pinyin">
+            <ColorizePinyin pinyin={message.pinyin} />
+          </span>
         )}
 
         {/* Main text */}

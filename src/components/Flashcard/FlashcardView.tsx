@@ -3,10 +3,11 @@
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Volume2 } from 'lucide-react';
 import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
+import { ColorizePinyin } from '../../utils/toneColor';
 import './flashcard.css';
 
 interface FlashcardViewProps {
@@ -46,11 +47,12 @@ interface StudyCardProps {
   example: string;
   isFlipped: boolean;
   onFlip: () => void;
+  onPlayAudio?: () => void;
 }
 
-function StudyCard({ hanzi, pinyin, meaning, example, isFlipped, onFlip }: StudyCardProps) {
+function StudyCard({ hanzi, pinyin, meaning, example, isFlipped, onFlip, onPlayAudio }: StudyCardProps) {
   return (
-    <div className="flashcard-container" onClick={onFlip}>
+    <div className="flashcard-container" style={{ position: 'relative' }} onClick={onFlip}>
       <div className={`flashcard${isFlipped ? ' flipped' : ''}`}>
         {/* Front */}
         <div className="flashcard-front">
@@ -59,10 +61,17 @@ function StudyCard({ hanzi, pinyin, meaning, example, isFlipped, onFlip }: Study
         </div>
         {/* Back */}
         <div className="flashcard-back">
+          <button
+            className="flashcard-audio-btn"
+            onClick={(e) => { e.stopPropagation(); onPlayAudio?.(); }}
+            title="Dengarkan"
+          >
+            <Volume2 size={18} />
+          </button>
           <div className="flashcard-hanzi" style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
             {hanzi}
           </div>
-          <div className="flashcard-pinyin">{pinyin}</div>
+          <div className="flashcard-pinyin"><ColorizePinyin pinyin={pinyin} /></div>
           <div className="flashcard-divider" />
           <div className="flashcard-meaning">{meaning}</div>
           {example ? (

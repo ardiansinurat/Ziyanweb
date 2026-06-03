@@ -4,6 +4,7 @@
 
 import { Volume2, BookmarkPlus, BookmarkCheck, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { ColorizePinyin } from '../../utils/toneColor';
 
 const DAILY_WORDS = [
   // HSK 1
@@ -140,7 +141,7 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
 
       <div className={`daily-word-content${animating ? ' daily-word-fade' : ''}`}>
         <div className="daily-word-hanzi">{word.hanzi}</div>
-        <div className="daily-word-pinyin">{word.pinyin}</div>
+        <div className="daily-word-pinyin"><ColorizePinyin pinyin={word.pinyin} /></div>
         <div className="daily-word-meaning">{word.meaning}</div>
         <div className="daily-word-example">"{word.example}"</div>
       </div>
