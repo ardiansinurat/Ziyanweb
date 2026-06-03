@@ -21,6 +21,7 @@ const FILTER_LABELS: { value: FlashcardFilter; label: string }[] = [
   { value: '1', label: 'HSK 1' },
   { value: '2', label: 'HSK 2' },
   { value: '3', label: 'HSK 3' },
+  { value: 'review', label: '📅 Review' },
   { value: 'saved', label: 'Kosakata Saya' },
 ];
 
@@ -178,6 +179,8 @@ export default function FlashcardView({
     resetDeck,
     setFilter,
     setMode,
+    srsData,
+    reviewCount,
   } = useFlashcard(vocabWords, 'all', 'study');
 
   // Quiz: track selected answer id (null = unanswered)
@@ -282,12 +285,19 @@ export default function FlashcardView({
               onClick={() => setFilter(f.value)}
             >
               {f.label}
+              {f.value === 'review' && reviewCount > 0 && (
+                <span className="filter-btn-badge">{reviewCount}</span>
+              )}
             </button>
           ))}
         </div>
         <div className="flashcard-empty">
           <div className="flashcard-empty-icon">📚</div>
-          <p>Belum ada kosakata untuk filter ini.</p>
+          {state.filter === 'review' ? (
+            <p>Tidak ada kartu yang perlu direview hari ini. Terus berlatih! 🎉</p>
+          ) : (
+            <p>Belum ada kosakata untuk filter ini.</p>
+          )}
           {state.filter === 'saved' && (
             <p style={{ fontSize: '0.85rem' }}>
               Simpan kata dari Chat untuk belajar di sini.
@@ -347,6 +357,9 @@ export default function FlashcardView({
             onClick={() => setFilter(f.value)}
           >
             {f.label}
+            {f.value === 'review' && reviewCount > 0 && (
+              <span className="filter-btn-badge">{reviewCount}</span>
+            )}
           </button>
         ))}
       </div>
@@ -422,6 +435,12 @@ export default function FlashcardView({
               {state.mode === 'study' && !state.isComplete && deck.length > 0 && (
                 <div className="flashcard-keyboard-hint">
                   <kbd>Space</kbd> balik · <kbd>→</kbd> tahu · <kbd>←</kbd> tidak tahu
+                </div>
+              )}
+              {/* SRS interval hint (shown when card is flipped and has SRS data) */}
+              {state.isFlipped && currentCard && srsData[currentCard.id] && (
+                <div className="srs-interval-hint">
+                  ⏱ Review ulang dalam {srsData[currentCard.id].interval} hari
                 </div>
               )}
             </>
