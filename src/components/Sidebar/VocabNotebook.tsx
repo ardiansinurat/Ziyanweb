@@ -6,6 +6,7 @@ import { useState, useMemo } from 'react';
 import { BookmarkX, Volume2, Search, Download, BookOpen, Plus } from 'lucide-react';
 import type { VocabWord } from '../../types';
 import { ColorizePinyin } from '../../utils/toneColor';
+import { getItem, setItem } from '../../utils/storage';
 
 interface Props {
   words: VocabWord[];
@@ -29,6 +30,8 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
   const [sortBy, setSortBy] = useState<'date' | 'alpha' | 'source'>('date');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'chat' | 'daily' | 'manual'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [mastery, setMastery] = useState<Record<string, number>>(() => getItem<Record<string, number>>('vocab_mastery', {}));
+  const [masteryFilter, setMasteryFilter] = useState<'all' | 'unrated' | 'learning' | 'mastered'>('all');
   const [newHanzi, setNewHanzi] = useState('');
   const [newPinyin, setNewPinyin] = useState('');
   const [newMeaning, setNewMeaning] = useState('');
@@ -50,8 +53,23 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
     return result;
   }, [words, search]);
 
+  const setWordMastery = (id: string, rating: number) => {
+    const current = mastery[id] ?? 0;
+    // Toggle off if clicking same rating
+    const next = { ...mastery, [id]: current === rating ? 0 : rating };
+    setMastery(next);
+    setItem('vocab_mastery', next);
+  };
+
   const displayWords = [...filteredWords]
     .filter(w => sourceFilter === 'all' || (w as any).source === sourceFilter)
+    .filter(w => {
+      const stars = mastery[w.id] ?? 0;
+      if (masteryFilter === 'unrated') return stars === 0;
+      if (masteryFilter === 'learning') return stars >= 1 && stars <= 3;
+      if (masteryFilter === 'mastered') return stars >= 4;
+      return true;
+    })
     .sort((a, b) => {
       if (sortBy === 'alpha') return a.hanzi.localeCompare(b.hanzi);
       if (sortBy === 'source') return ((a as any).source ?? '').localeCompare((b as any).source ?? '');
@@ -149,6 +167,24 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
         ))}
       </div>
 
+      {/* Mastery filter row */}
+      <div className="vocab-mastery-filter">
+        {([
+          { value: 'all', label: 'Semua ★' },
+          { value: 'unrated', label: '☆ Belum' },
+          { value: 'learning', label: '⭐ Belajar' },
+          { value: 'mastered', label: '🌟 Hafal' },
+        ] as const).map(({ value, label }) => (
+          <button
+            key={value}
+            className={`vocab-mastery-filter-btn${masteryFilter === value ? ' active' : ''}`}
+            onClick={() => setMasteryFilter(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Add word button */}
       {onAddWord && (
         <button
@@ -227,6 +263,23 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
               {(word as any).example && (
                 <span className="vocab-example">"{(word as any).example}"</span>
               )}
+              <div className="vocab-mastery">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    className={`vocab-mastery-star${(mastery[word.id] ?? 0) >= star ? ' active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); setWordMastery(word.id, star); }}
+                    title={star === 1 ? 'Baru kenal' : star === 2 ? 'Agak ingat' : star === 3 ? 'Lumayan' : star === 4 ? 'Hampir hafal' : 'Hafal!'}
+                  >
+                    ★
+                  </button>
+                ))}
+                {(mastery[word.id] ?? 0) > 0 && (
+                  <span className="vocab-mastery-label">
+                    {(mastery[word.id] ?? 0) >= 5 ? 'Hafal!' : (mastery[word.id] ?? 0) >= 4 ? 'Hampir hafal' : (mastery[word.id] ?? 0) >= 3 ? 'Lumayan' : (mastery[word.id] ?? 0) >= 2 ? 'Agak ingat' : 'Baru kenal'}
+                  </span>
+                )}
+              </div>
             </div>
           ))
         )}
