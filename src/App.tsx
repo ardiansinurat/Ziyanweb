@@ -44,7 +44,7 @@ function App() {
   const { words, addWord, removeWord, isWordSaved, totalWords } = useVocab();
   const { showToast } = useToast();
   const { updateToday } = useActivityHistory();
-  const { messages, isLoading, messagesEndRef, sendMessage, clearChat, playAudio } = useChat(hskLevel);
+  const { messages, isLoading, messagesEndRef, sendMessage, clearChat, playAudio } = useChat(hskLevel, accuracy);
 
   // Level-up detection
   const prevLevelRef = useRef<number>(stats.level);

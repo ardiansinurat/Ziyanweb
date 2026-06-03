@@ -26,7 +26,7 @@ Aturan:
 - Panjang respons: singkat untuk salam/basa-basi, panjang untuk penjelasan grammar
 - tip: isi hanya jika ada poin grammar/budaya yang berguna; kosong jika tidak perlu`;
 
-export function useChat(hskLevel: number = 1) {
+export function useChat(hskLevel: number = 1, accuracy?: number) {
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = getItem<Message[]>('current_messages', []);
     return saved.length > 0 ? saved : [DEFAULT_GREETING];
@@ -83,8 +83,20 @@ export function useChat(hskLevel: number = 1) {
 
   const buildSystemPrompt = useCallback(() => {
     const levelNote = hskLevel > 1 ? ` Pengguna di HSK ${hskLevel}.` : '';
-    return SYSTEM_PROMPT + levelNote;
-  }, [hskLevel]);
+
+    // Adaptive difficulty based on correction rate
+    let difficultyNote = '';
+    if (accuracy !== undefined) {
+      if (accuracy < 50) {
+        difficultyNote = ' Pengguna sering membuat kesalahan. Gunakan kalimat lebih pendek dan sederhana. Beri lebih banyak dorongan.';
+      } else if (accuracy > 85) {
+        difficultyNote = ' Pengguna sangat akurat. Gunakan kosakata lebih beragam dan struktur kalimat lebih kompleks.';
+      }
+      // Between 50-85%: use default/moderate complexity
+    }
+
+    return SYSTEM_PROMPT + levelNote + difficultyNote;
+  }, [hskLevel, accuracy]);
 
   const sendMessage = useCallback(async (
     text: string,
