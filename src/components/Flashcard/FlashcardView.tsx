@@ -2,7 +2,7 @@
 // FlashcardView — Flashcard & Quiz UI
 // ============================================================
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Volume2 } from 'lucide-react';
 import HanziWriter from 'hanzi-writer';
 import type { VocabWord } from '../../types';
@@ -122,6 +122,41 @@ function QuizCard({ hanzi, options, onAnswer, answered }: QuizCardProps) {
   );
 }
 
+// ── Confetti ──────────────────────────────────────────────────
+const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#A8E6CF', '#C9A0DC', '#FF8B94'];
+
+function Confetti() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      delay: `${Math.random() * 2}s`,
+      duration: `${2 + Math.random() * 2}s`,
+      size: `${6 + Math.round(Math.random() * 6)}px`,
+    }));
+  }, []);
+
+  return (
+    <div className="confetti-wrap">
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="confetti-particle"
+          style={{
+            left: p.left,
+            background: p.color,
+            animationDuration: p.duration,
+            animationDelay: p.delay,
+            width: p.size,
+            height: p.size,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ── Completion screen ─────────────────────────────────────────
 interface CompletionProps {
   correct: number;
@@ -138,6 +173,7 @@ function CompletionScreen({ correct, incorrect, total, onReset }: CompletionProp
   return (
     <div className="completion-screen">
       <div className="glass-panel">
+        {pct >= 90 && <Confetti />}
         <div className="stars-display">
           {[1, 2, 3].map(s => (
             <span key={s}>{s <= stars ? '⭐' : '☆'}</span>
