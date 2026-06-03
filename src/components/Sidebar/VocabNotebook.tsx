@@ -5,6 +5,7 @@
 import { useState, useMemo } from 'react';
 import { BookmarkX, Volume2, Search, Download, BookOpen, Plus } from 'lucide-react';
 import type { VocabWord } from '../../types';
+import { ColorizePinyin } from '../../utils/toneColor';
 
 interface Props {
   words: VocabWord[];
@@ -211,7 +212,7 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
               <div className="vocab-item-top">
                 <div className="vocab-item-main">
                   <span className="vocab-hanzi">{word.hanzi}</span>
-                  <span className="vocab-pinyin">{word.pinyin}</span>
+                  <span className="vocab-pinyin"><ColorizePinyin pinyin={word.pinyin} /></span>
                 </div>
                 <div className="vocab-item-actions">
                   <button className="vocab-audio-btn" onClick={() => playWord(word.hanzi)} title="Dengarkan">
