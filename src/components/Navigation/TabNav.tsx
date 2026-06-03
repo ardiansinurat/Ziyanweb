@@ -15,6 +15,7 @@ interface TabItem {
 interface Props {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
+  badgeCounts?: Partial<Record<Tab, number>>;
 }
 
 const TABS: TabItem[] = [
@@ -24,7 +25,7 @@ const TABS: TabItem[] = [
   { id: 'progress',   icon: BarChart2,     label: 'Progress' },
 ];
 
-export function TabNav({ activeTab, onTabChange }: Props) {
+export function TabNav({ activeTab, onTabChange, badgeCounts }: Props) {
   return (
     <div className="tab-nav">
       {TABS.map(tab => (
@@ -34,7 +35,12 @@ export function TabNav({ activeTab, onTabChange }: Props) {
           onClick={() => onTabChange(tab.id)}
           title={tab.label}
         >
-          <tab.icon size={20} />
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <tab.icon size={20} />
+            {!!badgeCounts?.[tab.id] && (
+              <span className="tab-badge">{badgeCounts[tab.id]! > 99 ? '99+' : badgeCounts[tab.id]}</span>
+            )}
+          </div>
           <span className="tab-label">{tab.label}</span>
         </button>
       ))}

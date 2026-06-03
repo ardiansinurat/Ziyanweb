@@ -37,6 +37,11 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => getItem<Tab>('active_tab', 'chat'));
+  const [reviewCount, setReviewCount] = useState(() => {
+    const srsData = getItem<Record<string, { interval: number; due: string }>>('srs_data', {});
+    const today = new Date().toISOString().split('T')[0];
+    return Object.values(srsData).filter(v => v.due <= today).length;
+  });
 
   // === Hooks ===
   const { theme, setTheme } = useTheme();
@@ -72,6 +77,13 @@ function App() {
   // Persist active tab
   useEffect(() => {
     setItem('active_tab', activeTab);
+  }, [activeTab]);
+
+  // Re-read SRS due count when tab changes
+  useEffect(() => {
+    const srsData = getItem<Record<string, { interval: number; due: string }>>('srs_data', {});
+    const today = new Date().toISOString().split('T')[0];
+    setReviewCount(Object.values(srsData).filter(v => v.due <= today).length);
   }, [activeTab]);
 
   // Sync activity history with current stats
@@ -179,7 +191,11 @@ function App() {
 
         {/* Main content with tab navigation */}
         <div className="main-content">
-          <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+          <TabNav
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            badgeCounts={{ flashcards: reviewCount }}
+          />
 
           <div className="tab-content-area">
             {/* Chat tab — always mounted to preserve chat state */}
