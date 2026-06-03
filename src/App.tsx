@@ -143,6 +143,7 @@ function App() {
           vocabWords={words}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onRemoveWord={removeWord}
+          onAddWord={(word) => { addWord(word); showToast('Kata ditambahkan!', 'success'); }}
           onStartPractice={handleStartPractice}
           onSaveDailyWord={handleSaveDailyWord}
           playAudio={playAudio}
