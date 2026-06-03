@@ -1,8 +1,8 @@
 // ============================================================
-// App.tsx — Slim orchestrator for the Ziyan Learning App
+// App.tsx — Orchestrator for the Ziyan Learning App
 // ============================================================
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import './index.css';
 
 import type { ThemeId } from './types';
@@ -10,15 +10,31 @@ import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
 import { useStats } from './hooks/useStats';
 import { useVocab } from './hooks/useVocab';
+import { useActivityHistory } from './hooks/useActivityHistory';
 import { getItem, setItem, migrateLegacyStorage } from './utils/storage';
 
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { CharacterModal } from './components/Modals/CharacterModal';
+import { TabNav, type Tab } from './components/Navigation/TabNav';
+import { FlashcardView } from './components/Flashcard/FlashcardView';
+import { ProgressDashboard } from './components/Dashboard/ProgressDashboard';
 import { useToast } from './components/UI/Toast';
 
-// Run once on first load
+// Lazy-load LessonsView (graceful fallback if file is still being created)
+const LessonsView = lazy(() =>
+  import('./components/Lessons/LessonsView').catch(() => ({
+    default: () => (
+      <div className="tab-coming-soon">
+        <div className="coming-soon-emoji">📚</div>
+        <h3>Kurikulum Belajar</h3>
+        <p>Materi pelajaran sedang disiapkan...</p>
+      </div>
+    ),
+  }))
+);
+
 migrateLegacyStorage();
 
 function App() {
@@ -29,21 +45,32 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>(() => getItem<Tab>('active_tab', 'chat'));
 
   // === Hooks ===
   const { theme, setTheme } = useTheme();
   const { stats, accuracy, recordUserMessage, recordAiResponse } = useStats();
   const { words, addWord, removeWord, isWordSaved, totalWords } = useVocab();
   const { showToast } = useToast();
-
+  const { updateToday } = useActivityHistory();
   const { messages, isLoading, messagesEndRef, sendMessage, clearChat, playAudio } = useChat(hskLevel);
 
-  // Persist profile changes
+  // Persist profile
   useEffect(() => {
     setItem('profile_name', userName);
     setItem('profile_avatar', userAvatar);
     setItem('profile_hsk', hskLevel);
   }, [userName, userAvatar, hskLevel]);
+
+  // Persist active tab
+  useEffect(() => {
+    setItem('active_tab', activeTab);
+  }, [activeTab]);
+
+  // Sync activity history with current stats
+  useEffect(() => {
+    updateToday(stats.totalMessages, totalWords);
+  }, [stats.totalMessages, totalWords, updateToday]);
 
   // === Handlers ===
   const handleSend = useCallback((text: string) => {
@@ -52,21 +79,20 @@ function App() {
       () => recordUserMessage(),
       (aiMsg) => {
         const hadCorrection = !!(aiMsg.correction && aiMsg.correction.trim());
-        const wordCount = aiMsg.text.length; // Chinese characters
-        recordAiResponse(hadCorrection, wordCount);
+        recordAiResponse(hadCorrection, aiMsg.text.length);
       }
     );
   }, [sendMessage, recordUserMessage, recordAiResponse]);
 
+  // Navigate to chat tab and send a message (used by Lessons/Flashcard)
+  const handleSendToChat = useCallback((text: string) => {
+    setActiveTab('chat');
+    setTimeout(() => handleSend(text), 80);
+  }, [handleSend]);
+
   const handleSaveWord = useCallback((hanzi: string) => {
-    // Find the message to extract pinyin and translation
     const msg = messages.find(m => m.text === hanzi && m.sender === 'ai');
-    addWord({
-      hanzi,
-      pinyin: msg?.pinyin || '',
-      meaning: msg?.translation || '',
-      source: 'chat',
-    });
+    addWord({ hanzi, pinyin: msg?.pinyin || '', meaning: msg?.translation || '', source: 'chat' });
     showToast('Kata disimpan ke kosakata!', 'success');
   }, [messages, addWord, showToast]);
 
@@ -84,8 +110,9 @@ function App() {
   }, [clearChat, showToast]);
 
   const handleStartPractice = useCallback(() => {
-    handleSend('给我一个练习题');
+    setActiveTab('chat');
     setIsSidebarOpen(false);
+    setTimeout(() => handleSend('给我一个练习题'), 80);
   }, [handleSend]);
 
   const handleSaveDailyWord = useCallback((word: { hanzi: string; pinyin: string; meaning: string; example: string }) => {
@@ -123,18 +150,59 @@ function App() {
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        <ChatPanel
-          messages={messages}
-          isLoading={isLoading}
-          messagesEndRef={messagesEndRef}
-          onSend={handleSend}
-          onClearChat={handleClearChat}
-          playAudio={playAudio}
-          isWordSaved={isWordSaved}
-          onSaveWord={handleSaveWord}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          onShowCharacter={setSelectedChar}
-        />
+        {/* Main content with tab navigation */}
+        <div className="main-content">
+          <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+          <div className="tab-content-area">
+            {/* Chat tab — always mounted to preserve chat state */}
+            <div style={{ display: activeTab === 'chat' ? 'contents' : 'none' }}>
+              <ChatPanel
+                messages={messages}
+                isLoading={isLoading}
+                messagesEndRef={messagesEndRef}
+                onSend={handleSend}
+                onClearChat={handleClearChat}
+                playAudio={playAudio}
+                isWordSaved={isWordSaved}
+                onSaveWord={handleSaveWord}
+                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                onShowCharacter={setSelectedChar}
+              />
+            </div>
+
+            {/* Lessons tab */}
+            {activeTab === 'lessons' && (
+              <div className="tab-panel glass-panel">
+                <Suspense fallback={<div className="tab-loading">Memuat materi...</div>}>
+                  <LessonsView hskLevel={hskLevel} onSendToChat={handleSendToChat} />
+                </Suspense>
+              </div>
+            )}
+
+            {/* Flashcards tab */}
+            {activeTab === 'flashcards' && (
+              <div className="tab-panel glass-panel">
+                <FlashcardView
+                  vocabWords={words}
+                  hskLevel={hskLevel}
+                  onSendToChat={handleSendToChat}
+                />
+              </div>
+            )}
+
+            {/* Progress tab */}
+            {activeTab === 'progress' && (
+              <div className="tab-panel glass-panel">
+                <ProgressDashboard
+                  stats={stats}
+                  accuracy={accuracy}
+                  words={words}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <SettingsModal
@@ -146,7 +214,7 @@ function App() {
         hskLevel={hskLevel}
         onSave={handleSettingsSave}
       />
-      
+
       <CharacterModal
         character={selectedChar}
         onClose={() => setSelectedChar(null)}
