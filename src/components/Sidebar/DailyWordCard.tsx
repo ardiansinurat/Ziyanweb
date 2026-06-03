@@ -3,7 +3,8 @@
 // ============================================================
 
 import { Volume2, BookmarkPlus, BookmarkCheck, ChevronRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import HanziWriter from 'hanziwriter';
 import { ColorizePinyin } from '../../utils/toneColor';
 
 const DAILY_WORDS = [
@@ -91,6 +92,8 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
   const [dayIndex, setDayIndex] = useState(0);
   const [saved, setSaved] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [showStroke, setShowStroke] = useState(false);
+  const strokeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const now = new Date();
@@ -106,11 +109,34 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
   const word = DAILY_WORDS[dayIndex];
   const dayNumber = dayIndex + 1;
 
+  useEffect(() => {
+    if (!showStroke || !strokeRef.current) {
+      if (strokeRef.current) strokeRef.current.innerHTML = '';
+      return;
+    }
+    strokeRef.current.innerHTML = '';
+    const firstChar = word.hanzi.charAt(0);
+    HanziWriter.create(strokeRef.current, firstChar, {
+      width: 120,
+      height: 120,
+      padding: 5,
+      strokeAnimationSpeed: 1,
+      delayBetweenStrokes: 100,
+      strokeColor: '#4A90D9',
+      outlineColor: document.documentElement.getAttribute('data-theme')?.startsWith('dark') ? '#4a4a5a' : '#cccccc',
+      showCharacter: false,
+    }).animateCharacter();
+    return () => {
+      if (strokeRef.current) strokeRef.current.innerHTML = '';
+    };
+  }, [showStroke, word.hanzi]);
+
   const handleNext = () => {
     setAnimating(true);
     setTimeout(() => {
       setDayIndex(prev => (prev + 1) % DAILY_WORDS.length);
       setSaved(false);
+      setShowStroke(false);
       setAnimating(false);
     }, 200);
   };
@@ -133,6 +159,13 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
           <button className="msg-action-btn" onClick={() => playAudio(word.hanzi)} title="Dengarkan">
             <Volume2 size={16} />
           </button>
+          <button
+            className="msg-action-btn"
+            onClick={() => setShowStroke(p => !p)}
+            title={showStroke ? 'Sembunyikan urutan goresan' : 'Lihat urutan goresan'}
+          >
+            ✍️
+          </button>
           <button className="msg-action-btn" onClick={handleNext} title="Kata berikutnya">
             <ChevronRight size={16} />
           </button>
@@ -145,6 +178,10 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
         <div className="daily-word-meaning">{word.meaning}</div>
         <div className="daily-word-example">"{word.example}"</div>
       </div>
+
+      {showStroke && (
+        <div className="daily-word-stroke-container" ref={strokeRef} style={{ width: 120, height: 120 }} />
+      )}
 
       {onSaveWord && (
         <button
