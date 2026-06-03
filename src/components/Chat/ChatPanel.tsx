@@ -2,7 +2,8 @@
 // ChatPanel — Main chat area orchestrator
 // ============================================================
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import type { Message } from '../../types';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
@@ -77,9 +78,30 @@ export function ChatPanel({
   onShowCharacter,
 }: Props) {
   const [showTranslations, setShowTranslations] = useState(true);
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const hasMessages = messages.length > 1; // More than just greeting
   const lastAiMsg = [...messages].reverse().find(m => m.sender === 'ai');
+
+  const filteredMessages = searchQuery
+    ? messages.filter(msg =>
+        msg.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.pinyin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.translation?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : messages;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setSearchActive(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleExport = useCallback(() => {
     const lines = messages.map(m => {
@@ -109,7 +131,30 @@ export function ChatPanel({
         onClearChat={onClearChat}
         onToggleSidebar={onToggleSidebar}
         onExportChat={hasMessages ? handleExport : undefined}
+        onToggleSearch={() => setSearchActive(prev => !prev)}
+        searchActive={searchActive}
       />
+
+      {searchActive && (
+        <div className="chat-search-bar">
+          <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <input
+            className="chat-search-input"
+            placeholder="Cari pesan..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+          {searchQuery && (
+            <span className="chat-search-count">
+              {filteredMessages.length} hasil
+            </span>
+          )}
+          <button className="btn-icon" onClick={() => { setSearchActive(false); setSearchQuery(''); }} style={{ padding: 4 }}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       <div className="chat-messages">
         {!hasMessages && (
@@ -134,7 +179,7 @@ export function ChatPanel({
           </div>
         )}
 
-        {messages.map(msg => (
+        {filteredMessages.map(msg => (
           <MessageBubble
             key={msg.id}
             message={msg}

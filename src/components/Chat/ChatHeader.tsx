@@ -2,7 +2,7 @@
 // ChatHeader — Top bar of the chat panel
 // ============================================================
 
-import { Eye, EyeOff, Trash2, Menu, Download } from 'lucide-react';
+import { Eye, EyeOff, Trash2, Menu, Download, Search } from 'lucide-react';
 
 interface Props {
   showTranslations: boolean;
@@ -10,9 +10,11 @@ interface Props {
   onClearChat: () => void;
   onToggleSidebar?: () => void;
   onExportChat?: () => void;
+  onToggleSearch?: () => void;
+  searchActive?: boolean;
 }
 
-export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat, onToggleSidebar, onExportChat }: Props) {
+export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat, onToggleSidebar, onExportChat, onToggleSearch, searchActive }: Props) {
   return (
     <div className="chat-header">
       <div className="tutor-info">
@@ -47,6 +49,14 @@ export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat
             <Download size={20} />
           </button>
         )}
+        <button
+          className="btn-icon"
+          onClick={onToggleSearch}
+          title="Cari Pesan"
+          style={searchActive ? { color: 'var(--primary)' } : undefined}
+        >
+          <Search size={20} />
+        </button>
         <button
           className="btn-icon"
           onClick={onClearChat}
