@@ -322,8 +322,50 @@ function VocabTab({ lesson, isWordSaved, onSaveWord }: VocabTabProps) {
 
 // ── Sub-component: Dialog Tab ─────────────────────────────────
 function DialogTab({ lesson, onShowCharacter }: { lesson: Lesson; onShowCharacter?: (char: string) => void }) {
+  const [isPlayingAll, setIsPlayingAll] = useState(false);
+
+  const playAllDialogue = () => {
+    if (isPlayingAll) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAll(false);
+      return;
+    }
+
+    setIsPlayingAll(true);
+    const lines = lesson.dialogue;
+    let currentIndex = 0;
+
+    const playNext = () => {
+      if (currentIndex >= lines.length) {
+        setIsPlayingAll(false);
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(lines[currentIndex].hanzi);
+      u.lang = 'zh-CN';
+      u.rate = 0.9;
+      u.onend = () => {
+        currentIndex++;
+        setTimeout(playNext, 1200);
+      };
+      window.speechSynthesis.speak(u);
+    };
+
+    playNext();
+  };
+
   return (
     <div className="dialogue-container">
+      {/* Play all button */}
+      {lesson.dialogue.length > 1 && (
+        <button
+          className={`dialog-play-all-btn${isPlayingAll ? ' playing' : ''}`}
+          onClick={playAllDialogue}
+          style={{ marginBottom: '0.75rem' }}
+        >
+          {isPlayingAll ? '⏹ Stop' : '▶ Putar Semua Dialog'}
+        </button>
+      )}
       {lesson.dialogue.map((line, i) => (
         <div
           key={i}
