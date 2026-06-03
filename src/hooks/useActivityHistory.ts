@@ -37,12 +37,6 @@ export function useActivityHistory() {
     getItem<DailyActivity[]>(STORAGE_KEY, [])
   );
 
-  // Persist and update state together
-  const persist = useCallback((next: DailyActivity[]) => {
-    setHistory(next);
-    setItem(STORAGE_KEY, next);
-  }, []);
-
   /**
    * Update today's activity record. Creates or updates the entry for today.
    */

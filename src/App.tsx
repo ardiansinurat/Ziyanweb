@@ -2,7 +2,7 @@
 // App.tsx — Orchestrator for the Ziyan Learning App
 // ============================================================
 
-import { useState, useCallback, useEffect, Suspense, lazy } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import './index.css';
 
 import type { ThemeId } from './types';
@@ -18,22 +18,10 @@ import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { CharacterModal } from './components/Modals/CharacterModal';
 import { TabNav, type Tab } from './components/Navigation/TabNav';
-import { FlashcardView } from './components/Flashcard/FlashcardView';
-import { ProgressDashboard } from './components/Dashboard/ProgressDashboard';
+import FlashcardView from './components/Flashcard/FlashcardView';
+import ProgressDashboard from './components/Dashboard/ProgressDashboard';
+import { LessonsView } from './components/Lessons/LessonsView';
 import { useToast } from './components/UI/Toast';
-
-// Lazy-load LessonsView (graceful fallback if file is still being created)
-const LessonsView = lazy(() =>
-  import('./components/Lessons/LessonsView').catch(() => ({
-    default: () => (
-      <div className="tab-coming-soon">
-        <div className="coming-soon-emoji">📚</div>
-        <h3>Kurikulum Belajar</h3>
-        <p>Materi pelajaran sedang disiapkan...</p>
-      </div>
-    ),
-  }))
-);
 
 migrateLegacyStorage();
 
@@ -174,9 +162,7 @@ function App() {
             {/* Lessons tab */}
             {activeTab === 'lessons' && (
               <div className="tab-panel glass-panel">
-                <Suspense fallback={<div className="tab-loading">Memuat materi...</div>}>
-                  <LessonsView hskLevel={hskLevel} onSendToChat={handleSendToChat} />
-                </Suspense>
+                <LessonsView hskLevel={hskLevel} onSendToChat={handleSendToChat} />
               </div>
             )}
 
