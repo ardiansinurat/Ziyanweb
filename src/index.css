@@ -619,6 +619,15 @@ h1, h2, h3 {
   color: var(--text-muted);
 }
 
+.chat-textarea {
+  padding: 8px 12px;
+  line-height: 1.5;
+  min-height: 40px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
 .btn-icon {
   background: var(--glass-bg);
   border: none;
@@ -2056,3 +2065,18 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
 .hsk-1 { background: var(--tone-3, #2d9e4e); color: #fff; }
 .hsk-2 { background: var(--tone-2, #e5872a); color: #fff; }
 .hsk-3 { background: var(--tone-4, #3b7de8); color: #fff; }
+
+/* ===== Daily Goal Bar ===== */
+.daily-goal-bar { padding: 10px 14px; }
+.daily-goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.daily-goal-label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
+.daily-goal-count { font-size: 0.75rem; color: var(--text-muted); }
+.daily-goal-track { height: 6px; border-radius: 3px; background: var(--glass-border); overflow: hidden; }
+.daily-goal-fill { height: 100%; border-radius: 3px; background: var(--primary); transition: width 0.5s ease; }
+.daily-goal-fill.complete { background: var(--success); }
+.daily-goal-complete-text { font-size: 0.72rem; color: var(--success); margin-top: 4px; text-align: center; font-weight: 600; }
+
+/* ===== Goal Selector (Settings) ===== */
+.goal-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+.goal-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.goal-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }

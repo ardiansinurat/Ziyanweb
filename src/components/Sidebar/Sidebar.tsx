@@ -25,6 +25,7 @@ interface Props {
   totalWords: number;
   totalMessages: number;
   dailyCount: number;
+  dailyGoal?: number;
   xp?: number;
   level?: number;
   vocabWords: VocabWord[];
@@ -38,6 +39,31 @@ interface Props {
   onClose: () => void;
 }
 
+function DailyGoalBar({ count, goal }: { count: number; goal: number }) {
+  const pct = Math.min(100, Math.round((count / goal) * 100));
+  const isComplete = count >= goal;
+
+  return (
+    <div className="daily-goal-bar glass-panel">
+      <div className="daily-goal-header">
+        <span className="daily-goal-label">
+          {isComplete ? '🎉 Target Hari Ini Tercapai!' : '🎯 Target Harian'}
+        </span>
+        <span className="daily-goal-count">{count}/{goal} pesan</span>
+      </div>
+      <div className="daily-goal-track">
+        <div
+          className={`daily-goal-fill${isComplete ? ' complete' : ''}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {isComplete && (
+        <div className="daily-goal-complete-text">+50 XP bonus earned! ⚡</div>
+      )}
+    </div>
+  );
+}
+
 export function Sidebar({
   userName,
   userAvatar,
@@ -47,6 +73,7 @@ export function Sidebar({
   totalWords,
   totalMessages,
   dailyCount,
+  dailyGoal,
   xp,
   level,
   vocabWords,
@@ -80,6 +107,8 @@ export function Sidebar({
           totalWords={totalWords}
           totalMessages={totalMessages}
         />
+
+        <DailyGoalBar count={dailyCount} goal={dailyGoal ?? 10} />
 
         <DailyWordCard playAudio={playAudio} onSaveWord={onSaveDailyWord} />
 

@@ -14,16 +14,18 @@ interface Props {
   userAvatar: string;
   theme: ThemeId;
   hskLevel: number;
-  onSave: (data: { name: string; avatar: string; theme: ThemeId; hskLevel: number }) => void;
+  dailyGoal: number;
+  onSave: (data: { name: string; avatar: string; theme: ThemeId; hskLevel: number; dailyGoal: number }) => void;
   onResetStats?: () => void;
   onResetChat?: () => void;
 }
 
-export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hskLevel, onSave, onResetStats, onResetChat }: Props) {
+export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hskLevel, dailyGoal, onSave, onResetStats, onResetChat }: Props) {
   const [tempName, setTempName] = useState(userName);
   const [tempAvatar, setTempAvatar] = useState(userAvatar);
   const [tempTheme, setTempTheme] = useState<ThemeId>(theme);
   const [tempHsk, setTempHsk] = useState(hskLevel);
+  const [tempGoal, setTempGoal] = useState(dailyGoal);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -34,8 +36,9 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
       setTempAvatar(userAvatar);
       setTempTheme(theme);
       setTempHsk(hskLevel);
+      setTempGoal(dailyGoal);
     }
-  }, [isOpen, userName, userAvatar, theme, hskLevel]);
+  }, [isOpen, userName, userAvatar, theme, hskLevel, dailyGoal]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -62,7 +65,7 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave({ name: tempName, avatar: tempAvatar, theme: tempTheme, hskLevel: tempHsk });
+    onSave({ name: tempName, avatar: tempAvatar, theme: tempTheme, hskLevel: tempHsk, dailyGoal: tempGoal });
     onClose();
   };
 
@@ -168,6 +171,24 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
               </div>
             )}
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Target Pesan Harian</label>
+          <div className="goal-selector">
+            {[5, 10, 15, 20, 30].map(g => (
+              <button
+                key={g}
+                className={`goal-btn ${tempGoal === g ? 'active' : ''}`}
+                onClick={() => setTempGoal(g)}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            pesan per hari
+          </p>
         </div>
 
         <div className="form-group danger-zone">

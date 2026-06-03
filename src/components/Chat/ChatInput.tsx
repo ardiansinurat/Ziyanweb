@@ -2,7 +2,7 @@
 // ChatInput — Message input area with mic and send buttons
 // ============================================================
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Send, Mic, MicOff } from 'lucide-react';
 
 interface Props {
@@ -22,6 +22,15 @@ export function ChatInput({ onSend, isLoading }: Props) {
   const [listenLabel, setListenLabel] = useState('');
   const recognitionRef = useRef<any>(null);
   const dotTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea as content grows/shrinks
+  useLayoutEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
+  }, [input]);
 
   // Animate "Dengarkan..." dots while recording
   useEffect(() => {
@@ -81,21 +90,22 @@ export function ChatInput({ onSend, isLoading }: Props) {
     recognition.start();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const doSend = () => {
     if (!input.trim() || isLoading) return;
     onSend(input.trim());
     setInput('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl+Enter to send
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    doSend();
+  };
+
+  // Enter sends; Shift+Enter inserts a newline
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (input.trim() && !isLoading) {
-        onSend(input.trim());
-        setInput('');
-      }
+      doSend();
     }
   };
 
@@ -112,7 +122,6 @@ export function ChatInput({ onSend, isLoading }: Props) {
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          animation: 'pulse 1s ease-in-out infinite',
         }}>
           <span style={{
             width: 8, height: 8,
@@ -124,7 +133,7 @@ export function ChatInput({ onSend, isLoading }: Props) {
           {listenLabel}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="input-wrapper" style={{ position: 'relative' }}>
+      <form onSubmit={handleSubmit} className="input-wrapper" style={{ position: 'relative', alignItems: 'flex-end' }}>
         <button
           type="button"
           className={`btn-icon ${isRecording ? 'recording' : ''}`}
@@ -135,25 +144,29 @@ export function ChatInput({ onSend, isLoading }: Props) {
         >
           {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
         </button>
-        <input
-          type="text"
-          className={`chat-input${isLoading ? ' chat-input-loading' : ''}`}
-          placeholder={isRecording ? '' : 'Ketik dalam Pinyin, Indonesia, atau Hanzi...'}
+        <textarea
+          ref={textareaRef}
+          className={`chat-input chat-textarea${isLoading ? ' chat-input-loading' : ''}`}
+          placeholder={isRecording ? '' : 'Ketik dalam Pinyin, Indonesia, atau Hanzi... (Enter kirim, Shift+Enter baris baru)'}
           value={isRecording ? listenLabel : input}
           onChange={(e) => { if (!isRecording) setInput(e.target.value); }}
           onKeyDown={handleKeyDown}
           disabled={isLoading || isRecording}
           id="chat-input-field"
-          style={isLoading ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+          rows={1}
+          style={{
+            resize: 'none',
+            overflow: 'hidden',
+            ...(isLoading ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+          }}
         />
         {showCounter && !isRecording && (
           <span style={{
             position: 'absolute',
             right: '52px',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            bottom: '12px',
             fontSize: '11px',
-            color: charCount > 80 ? 'var(--warning)' : 'var(--text-muted)',
+            color: charCount > 200 ? 'var(--warning)' : 'var(--text-muted)',
             pointerEvents: 'none',
             userSelect: 'none',
           }}>
@@ -164,7 +177,7 @@ export function ChatInput({ onSend, isLoading }: Props) {
           type="submit"
           className="btn-icon btn-send"
           disabled={!input.trim() || isLoading || isRecording}
-          title="Kirim (Ctrl+Enter)"
+          title="Kirim (Enter)"
         >
           <Send size={20} />
         </button>
