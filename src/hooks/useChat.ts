@@ -18,13 +18,15 @@ import { DEFAULT_GREETING } from '../types';
 const CONTEXT_WINDOW = 8;
 
 // Lean system prompt — concise but precise instructions
-const SYSTEM_PROMPT = `Kamu adalah Ziyan, tutor Mandarin. Balas SELALU dengan JSON murni tanpa markdown:
-{"text":"<Hanzi>","pinyin":"<pinyin>","translation":"<terjemahan Indonesia>","correction":"<koreksi atau kosong>","tip":"<tip grammar/budaya singkat atau kosong>"}
-Aturan:
-- Sesuaikan kosakata & struktur kalimat dengan level HSK pengguna
-- Koreksi: tampilkan kalimat salah lalu versi benar. Contoh: "❌ 我是去 → ✅ 我去"
-- Panjang respons: singkat untuk salam/basa-basi, panjang untuk penjelasan grammar
-- tip: isi hanya jika ada poin grammar/budaya yang berguna; kosong jika tidak perlu`;
+const SYSTEM_PROMPT = `Kamu adalah Ziyan, tutor Mandarin AI untuk penutur bahasa Indonesia. Balas SELALU dengan JSON murni tanpa markdown atau teks lain:
+{"text":"<Hanzi>","pinyin":"<pinyin dengan tanda nada>","translation":"<terjemahan Indonesia>","correction":"<koreksi jika ada kesalahan, kosong jika tidak>","tip":"<tip grammar atau budaya singkat, kosong jika tidak perlu>"}
+
+Panduan respons:
+- text: SELALU dalam karakter Hanzi. Salam/basa-basi: 1-2 kalimat. Penjelasan grammar: 2-3 kalimat + contoh.
+- pinyin: tanda nada wajib (ā á ǎ à), pisah tiap kata dengan spasi.
+- correction: gunakan format "❌ <kalimat salah> → ✅ <kalimat benar>" HANYA jika ada kesalahan nyata. Kosong jika tidak ada kesalahan.
+- tip: berikan catatan grammar/budaya HANYA jika benar-benar membantu. Contoh: pola kalimat, perbedaan kata, konteks budaya. Kosong untuk percakapan biasa.
+- Akhiri setiap respons dengan satu pertanyaan singkat untuk mendorong percakapan berlanjut.`;
 
 export function useChat(hskLevel: number = 1, accuracy?: number) {
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -82,17 +84,21 @@ export function useChat(hskLevel: number = 1, accuracy?: number) {
   }, []);
 
   const buildSystemPrompt = useCallback(() => {
-    const levelNote = hskLevel > 1 ? ` Pengguna di HSK ${hskLevel}.` : '';
+    const hskGuide: Record<number, string> = {
+      1: ' Level HSK 1: gunakan kosakata 150 kata dasar, kalimat sangat sederhana, banyak dorongan.',
+      2: ' Level HSK 2: kosakata ~300 kata, struktur kalimat dasar, boleh pakai partikel 了/过/着.',
+      3: ' Level HSK 3: kosakata ~600 kata, boleh kalimat majemuk sederhana, gunakan 因为/所以/虽然.',
+      4: ' Level HSK 4+: kosakata luas, ungkapan idiomatik, struktur kalimat kompleks.',
+    };
+    const levelNote = hskGuide[hskLevel] ?? hskGuide[4];
 
-    // Adaptive difficulty based on correction rate
     let difficultyNote = '';
     if (accuracy !== undefined) {
       if (accuracy < 50) {
-        difficultyNote = ' Pengguna sering membuat kesalahan. Gunakan kalimat lebih pendek dan sederhana. Beri lebih banyak dorongan.';
+        difficultyNote = ' Pengguna sering salah — gunakan kalimat pendek, sederhana, dan beri banyak semangat.';
       } else if (accuracy > 85) {
-        difficultyNote = ' Pengguna sangat akurat. Gunakan kosakata lebih beragam dan struktur kalimat lebih kompleks.';
+        difficultyNote = ' Pengguna sangat akurat — tingkatkan kompleksitas kosakata dan variasi struktur kalimat.';
       }
-      // Between 50-85%: use default/moderate complexity
     }
 
     return SYSTEM_PROMPT + levelNote + difficultyNote;
@@ -161,23 +167,33 @@ export function useChat(hskLevel: number = 1, accuracy?: number) {
         playAudio(aiMessage.text);
         onAiResponse?.(aiMessage);
       } catch {
+        // Try to extract text field via regex as fallback
+        const textMatch = cleanText.match(/"text"\s*:\s*"([^"]+)"/);
+        const pinyinMatch = cleanText.match(/"pinyin"\s*:\s*"([^"]+)"/);
+        const translationMatch = cleanText.match(/"translation"\s*:\s*"([^"]+)"/);
+
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: cleanText,
+          text: textMatch?.[1] || cleanText,
+          pinyin: pinyinMatch?.[1] || '',
+          translation: translationMatch?.[1] || '',
           sender: 'ai',
           timestamp: Date.now(),
         };
         setMessages(prev => [...prev, aiMessage]);
-        playAudio(cleanText);
+        playAudio(aiMessage.text);
         onAiResponse?.(aiMessage);
       }
     } catch (error) {
       console.error('API Error:', error);
+      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
-        text: '抱歉，系统出现了一些问题。',
-        pinyin: 'Bàoqiàn, xìtǒng chūxiàn le yīxiē wèntí.',
-        translation: 'Maaf, terjadi kesalahan. Silakan coba lagi.',
+        text: isNetworkError ? '网络连接出现问题。' : '抱歉，请稍后再试。',
+        pinyin: isNetworkError ? 'Wǎngluò liánjīe chūxiàn wèntí.' : 'Bàoqiàn, qǐng shāohòu zài shì.',
+        translation: isNetworkError
+          ? 'Koneksi jaringan bermasalah. Periksa internet Anda.'
+          : 'Maaf, terjadi kesalahan. Silakan coba lagi.',
         sender: 'ai',
         timestamp: Date.now(),
       }]);
