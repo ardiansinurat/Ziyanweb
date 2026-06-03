@@ -109,39 +109,49 @@
   overflow: hidden;
   align-self: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  padding: 2px;
+  gap: 2px;
 }
 
 .mode-toggle-btn {
   flex: 1;
-  padding: 0.4rem 1.1rem;
+  padding: 0.42rem 1.2rem;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-muted);
   background: transparent;
   border: none;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   white-space: nowrap;
 }
 
 .mode-toggle-btn.active {
   background: var(--primary);
   color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 /* ── Card container + 3D flip ─────────────────────────────── */
 .flashcard-container {
-  perspective: 1200px;
+  perspective: 1400px;
   flex-shrink: 0;
 }
 
 .flashcard {
   position: relative;
   width: 100%;
-  min-height: 280px;
+  min-height: 290px;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.65s cubic-bezier(0.34, 1.15, 0.64, 1);
   cursor: pointer;
+  filter: drop-shadow(0 8px 32px var(--shadow-color));
+}
+
+.flashcard:hover {
+  filter: drop-shadow(0 12px 40px var(--shadow-color));
 }
 
 .flashcard.flipped {
@@ -154,8 +164,8 @@
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 1.2rem;
-  padding: 1.75rem 1.5rem;
+  border-radius: 1.4rem;
+  padding: 2rem 1.75rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -164,14 +174,35 @@
   gap: 0.75rem;
   background: var(--glass-bg);
   border: 1.5px solid var(--glass-border);
-  box-shadow: 0 4px 24px var(--shadow-color);
-  min-height: 280px;
+  box-shadow:
+    0 4px 16px var(--shadow-color),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset;
+  min-height: 290px;
+}
+
+/* Subtle shimmer on front face */
+.flashcard-front::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
 }
 
 .flashcard-back {
   transform: rotateY(180deg);
   align-items: flex-start;
   justify-content: center;
+  background: linear-gradient(
+    145deg,
+    var(--glass-bg) 0%,
+    color-mix(in srgb, var(--primary) 5%, var(--glass-bg)) 100%
+  );
 }
 
 /* ── Card content ─────────────────────────────────────────── */
@@ -326,16 +357,32 @@
 }
 
 .quiz-option.correct {
-  background: color-mix(in srgb, var(--success) 20%, transparent);
+  background: color-mix(in srgb, var(--success) 22%, transparent);
   border-color: var(--success);
   color: var(--success);
   font-weight: 700;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
+  animation: pulse-correct 0.35s ease;
 }
 
 .quiz-option.incorrect {
-  background: color-mix(in srgb, var(--warning) 20%, transparent);
+  background: color-mix(in srgb, var(--warning) 22%, transparent);
   border-color: var(--warning);
   color: var(--warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 20%, transparent);
+  animation: shake-wrong 0.4s ease;
+}
+
+@keyframes pulse-correct {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake-wrong {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  60%       { transform: translateX(6px); }
 }
 
 .quiz-option:disabled {
@@ -352,23 +399,40 @@
   padding: 2rem 1.5rem;
   text-align: center;
   flex: 1;
+  animation: completion-pop 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+@keyframes completion-pop {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .completion-screen .glass-panel {
   width: 100%;
   max-width: 400px;
-  padding: 2rem 1.5rem;
+  padding: 2.25rem 1.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--glass-border));
+  box-shadow:
+    0 8px 40px var(--shadow-color),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
 .stars-display {
   display: flex;
-  gap: 0.4rem;
-  font-size: 2.2rem;
+  gap: 0.5rem;
+  font-size: 2.5rem;
   line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+  animation: stars-bounce 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s both;
+}
+
+@keyframes stars-bounce {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
 .completion-title {
@@ -386,10 +450,12 @@
 }
 
 .completion-score {
-  font-size: 2.8rem;
+  font-size: 3rem;
   font-weight: 800;
   color: var(--primary);
   line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 .completion-score-label {

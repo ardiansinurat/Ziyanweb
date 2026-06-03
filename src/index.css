@@ -875,6 +875,16 @@ h1, h2, h3 {
   gap: 8px;
 }
 
+/* ===== Tab content fade-in animation ===== */
+.tab-panel {
+  animation: tabFadeIn 0.2s ease;
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ===== Quick Phrases ===== */
 .quick-phrases {
   padding: 0 24px 8px;

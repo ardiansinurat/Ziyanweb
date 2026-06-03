@@ -151,35 +151,66 @@
 /* ── Lesson Card ─────────────────────────────────────────── */
 .lesson-card {
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 16px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 18px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1),
+              box-shadow 0.25s ease,
+              border-color 0.2s ease,
+              background 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 10px;
   position: relative;
   overflow: hidden;
+  text-align: left;
 }
 
 .lesson-card::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 60%, rgba(255, 255, 255, 0.04));
+  background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 50%);
   pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Bottom accent line that reveals on hover */
+.lesson-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.lesson-card:hover::after {
+  transform: scaleX(1);
 }
 
 .lesson-card:hover {
   background: var(--glass-bg-hover);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px var(--shadow-color);
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 12px 32px var(--shadow-color);
   border-color: var(--primary);
+}
+
+.lesson-card:active {
+  transform: translateY(-2px) scale(1.00);
 }
 
 .lesson-card.completed {
   border-color: var(--success);
+}
+
+.lesson-card.completed::after {
+  background: var(--success);
 }
 
 .lesson-card-top {
@@ -374,7 +405,7 @@
   display: flex;
   gap: 2px;
   padding: 10px 20px 0;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 2px solid var(--glass-border);
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -385,36 +416,36 @@
 }
 
 .lesson-tab {
-  padding: 8px 14px;
-  border-radius: 8px 8px 0 0;
+  padding: 9px 16px;
+  border-radius: 10px 10px 0 0;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.18s ease, background 0.18s ease;
   white-space: nowrap;
   position: relative;
 }
 
 .lesson-tab:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .lesson-tab.active {
   color: var(--primary);
   font-weight: 700;
-  background: transparent;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .lesson-tab.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 12px;
-  right: 12px;
+  bottom: -2px;
+  left: 0;
+  right: 0;
   height: 2px;
   background: var(--primary);
   border-radius: 2px 2px 0 0;
@@ -505,31 +536,37 @@
 .pos-badge.kata-benda {
   background: rgba(96, 165, 250, 0.15);
   color: #2563eb;
+  border: 1px solid rgba(96, 165, 250, 0.35);
 }
 
 .pos-badge.kata-kerja {
   background: rgba(251, 146, 60, 0.15);
   color: #c2410c;
+  border: 1px solid rgba(251, 146, 60, 0.35);
 }
 
 .pos-badge.kata-sifat {
   background: rgba(167, 139, 250, 0.15);
   color: #7c3aed;
+  border: 1px solid rgba(167, 139, 250, 0.35);
 }
 
 .pos-badge.kata-keterangan {
   background: rgba(52, 211, 153, 0.15);
   color: #065f46;
+  border: 1px solid rgba(52, 211, 153, 0.35);
 }
 
 .pos-badge.kata-ganti {
   background: rgba(251, 191, 36, 0.15);
   color: #92400e;
+  border: 1px solid rgba(251, 191, 36, 0.35);
 }
 
 .pos-badge.partikel {
   background: rgba(236, 72, 153, 0.15);
   color: #be185d;
+  border: 1px solid rgba(236, 72, 153, 0.35);
 }
 
 [data-theme^='dark-'] .pos-badge.kata-benda    { color: #60a5fa; }
@@ -543,13 +580,13 @@
 .dialogue-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .dialogue-line {
   display: flex;
   flex-direction: column;
-  max-width: 82%;
+  max-width: 84%;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -569,33 +606,35 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 4px;
-  padding: 0 4px;
+  margin-bottom: 5px;
+  padding: 0 6px;
 }
 
 .dialogue-bubble {
-  padding: 10px 14px;
-  border-radius: 16px;
+  padding: 12px 16px;
+  border-radius: 18px;
   position: relative;
+  box-shadow: 0 2px 10px var(--shadow-color);
 }
 
 .speaker-a .dialogue-bubble {
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 4px 16px 16px 16px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 4px 18px 18px 18px;
 }
 
 .speaker-b .dialogue-bubble {
   background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-  border-radius: 16px 4px 16px 16px;
+  border-radius: 18px 4px 18px 18px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 .dialogue-hanzi {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--text-main);
-  line-height: 1.4;
-  margin-bottom: 4px;
+  line-height: 1.45;
+  margin-bottom: 5px;
 }
 
 .speaker-b .dialogue-hanzi {
@@ -603,25 +642,30 @@
 }
 
 .dialogue-pinyin {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   color: var(--primary);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   line-height: 1.3;
+  font-weight: 500;
 }
 
 .speaker-b .dialogue-pinyin {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .dialogue-translation {
   font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.3;
+  line-height: 1.35;
   font-style: italic;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 5px;
+  padding-top: 5px;
 }
 
 .speaker-b .dialogue-translation {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
+  border-top-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Grammar Tab ─────────────────────────────────────────── */
@@ -633,31 +677,52 @@
 
 .grammar-item {
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 12px var(--shadow-color);
+  transition: box-shadow 0.2s ease;
+}
+
+.grammar-item:hover {
+  box-shadow: 0 4px 20px var(--shadow-color);
 }
 
 .grammar-pattern {
-  padding: 14px 16px;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb, 255, 154, 158), 0.12), rgba(var(--primary-rgb, 255, 154, 158), 0.05));
-  border-bottom: 1px solid var(--glass-border);
+  padding: 16px 18px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 14%, transparent),
+    color-mix(in srgb, var(--primary) 6%, transparent)
+  );
+  border-bottom: 1.5px solid color-mix(in srgb, var(--primary) 20%, var(--glass-border));
+  border-left: 4px solid var(--primary);
 }
 
 .grammar-pattern-label {
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.67rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   color: var(--primary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.grammar-pattern-label::before {
+  content: '⌘';
+  font-size: 0.8em;
+  opacity: 0.7;
 }
 
 .grammar-pattern-formula {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: var(--text-main);
   font-family: 'Inter', monospace;
+  letter-spacing: 0.02em;
 }
 
 .grammar-explanation {

@@ -62,41 +62,67 @@
   }
 }
 
+/* Staggered entrance animation for stat cards */
+.stats-overview .stat-card:nth-child(1) { animation: stat-slide-in 0.4s ease 0.05s both; }
+.stats-overview .stat-card:nth-child(2) { animation: stat-slide-in 0.4s ease 0.12s both; }
+.stats-overview .stat-card:nth-child(3) { animation: stat-slide-in 0.4s ease 0.19s both; }
+.stats-overview .stat-card:nth-child(4) { animation: stat-slide-in 0.4s ease 0.26s both; }
+
+@keyframes stat-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 16px 12px;
-  border-radius: 14px;
+  padding: 18px 12px;
+  border-radius: 16px;
   text-align: center;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1), box-shadow 0.2s ease;
   cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle shimmer on stat cards */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
 }
 
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(var(--shadow-color, 0 0 0), 0.18);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 28px var(--shadow-color);
 }
 
 .stat-card-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: var(--glass-bg-hover);
+  box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .stat-card-value {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1;
   display: flex;
   align-items: baseline;
   gap: 2px;
+  letter-spacing: -0.02em;
 }
 
 .stat-card-unit {
@@ -106,11 +132,11 @@
 }
 
 .stat-card-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 /* ── Section shared styles ────────────────────────────────────── */
@@ -216,10 +242,26 @@
   min-height: 4px;
   background: var(--glass-border);
   border-radius: 6px 6px 0 0;
-  transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: height 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
   align-self: flex-end;
   position: relative;
   overflow: hidden;
+  animation: bar-grow-in 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  transform-origin: bottom;
+}
+
+/* Stagger bar entrance by index via wrapper */
+.chart-bar-wrapper:nth-child(1) .chart-bar { animation-delay: 0.05s; }
+.chart-bar-wrapper:nth-child(2) .chart-bar { animation-delay: 0.10s; }
+.chart-bar-wrapper:nth-child(3) .chart-bar { animation-delay: 0.15s; }
+.chart-bar-wrapper:nth-child(4) .chart-bar { animation-delay: 0.20s; }
+.chart-bar-wrapper:nth-child(5) .chart-bar { animation-delay: 0.25s; }
+.chart-bar-wrapper:nth-child(6) .chart-bar { animation-delay: 0.30s; }
+.chart-bar-wrapper:nth-child(7) .chart-bar { animation-delay: 0.35s; }
+
+@keyframes bar-grow-in {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
 }
 
 .chart-bar::after {
@@ -228,15 +270,16 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.18) 0%,
     transparent 100%
   );
   border-radius: inherit;
+  pointer-events: none;
 }
 
 .chart-bar.today {
-  background: var(--primary);
-  box-shadow: 0 0 12px rgba(var(--primary), 0.4);
+  background: linear-gradient(180deg, var(--primary-hover, var(--primary)), var(--primary));
+  box-shadow: 0 -2px 14px color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
 .chart-bar-day {
@@ -312,6 +355,7 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  filter: drop-shadow(0 4px 16px var(--shadow-color));
 }
 
 .progress-circle-svg {
@@ -319,23 +363,25 @@
 }
 
 .progress-arc {
-  transition: stroke-dashoffset 1s cubic-bezier(0.34, 1.2, 0.64, 1);
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.34, 1.2, 0.64, 1) 0.2s;
 }
 
 .progress-pct-text {
   font-size: 18px;
   font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .progress-sub-text {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 .progress-circle-label {
   font-size: 0.8rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   margin: 0;
   text-align: center;
 }
@@ -343,7 +389,7 @@
 .hsk-milestones {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
   min-width: 160px;
 }
@@ -352,18 +398,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 9px 14px;
+  border-radius: 12px;
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
+  border: 1.5px solid var(--glass-border);
+  opacity: 0.45;
+  transition: opacity 0.3s ease, border-color 0.3s ease, background 0.3s ease, transform 0.2s ease;
 }
 
 .hsk-milestone.reached {
   opacity: 1;
   border-color: var(--success);
   background: color-mix(in srgb, var(--success) 10%, var(--glass-bg));
+  transform: none;
+}
+
+.hsk-milestone.reached:hover {
+  transform: translateX(3px);
 }
 
 .hsk-milestone-dot {
@@ -372,11 +423,12 @@
   border-radius: 50%;
   background: var(--glass-border);
   flex-shrink: 0;
-  transition: background 0.2s ease;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .hsk-milestone.reached .hsk-milestone-dot {
   background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 25%, transparent);
 }
 
 .hsk-milestone-info {

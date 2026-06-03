@@ -1,0 +1,13 @@
+{
+  "name": "Ziyan — Belajar Mandarin",
+  "short_name": "Ziyan",
+  "description": "Teman belajar bahasa Mandarin interaktif dengan AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#ff9a9e",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
