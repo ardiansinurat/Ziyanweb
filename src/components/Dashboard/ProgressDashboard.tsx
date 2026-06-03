@@ -2,7 +2,7 @@
 // ProgressDashboard — Visual learning progress tracker
 // ============================================================
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useToast } from '../UI/Toast';
 import { getItem, setItem } from '../../utils/storage';
 import {
@@ -12,6 +12,7 @@ import {
   BookOpen,
   Lock,
   TrendingUp,
+  Copy,
 } from 'lucide-react';
 import type { UserStats, VocabWord } from '../../types';
 import { useActivityHistory, type DailyActivity } from '../../hooks/useActivityHistory';
@@ -371,6 +372,28 @@ export default function ProgressDashboard({
     }
   }, [unlockedIds, showToast]);
 
+  const handleCopyStats = useCallback(() => {
+    const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const text = [
+      `📊 Progress Belajar Mandarin — Ziyan`,
+      `📅 ${today}`,
+      ``,
+      `💬 ${stats.totalMessages} pesan terkirim`,
+      `🔥 ${stats.streakDays} hari streak`,
+      `🎯 ${accuracy}% akurasi`,
+      `📖 ${words.length} kata tersimpan`,
+      `⭐ Level ${stats.level} (${stats.xp} XP)`,
+      ``,
+      `Belajar Mandarin bersama Ziyan AI! 🐉`,
+    ].join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Statistik berhasil disalin!', 'success');
+    }).catch(() => {
+      showToast('Gagal menyalin statistik', 'info');
+    });
+  }, [stats, accuracy, words.length, showToast]);
+
   // Recent vocabulary (last 5 saved)
   const recentWords = useMemo(
     () =>
@@ -403,6 +426,12 @@ export default function ProgressDashboard({
 
       {/* ── XP Progress Bar ── */}
       <XpProgressBar xp={stats.xp} level={stats.level} />
+
+      {/* ── Copy Stats Button ── */}
+      <button className="stats-copy-btn" onClick={handleCopyStats}>
+        <Copy size={14} />
+        Salin Statistik
+      </button>
 
       {/* ── Stats Overview ── */}
       <div className="stats-overview">
