@@ -413,6 +413,8 @@ export default function ProgressDashboard({
       `🎯 ${accuracy}% akurasi`,
       `📖 ${words.length} kata tersimpan`,
       `⭐ Level ${stats.level} (${stats.xp} XP)`,
+      `⚡ ${stats.weeklyXp ?? 0} XP minggu ini`,
+      `🏆 Streak terpanjang: ${stats.longestStreak ?? stats.streakDays} hari`,
       ``,
       `Belajar Mandarin bersama Ziyan AI! 🐉`,
     ].join('\n');
@@ -460,6 +462,30 @@ export default function ProgressDashboard({
       {/* ── XP Progress Bar ── */}
       <XpProgressBar xp={stats.xp} level={stats.level} />
 
+      {/* Weekly XP Section */}
+      <div className="weekly-xp-section">
+        <div className="weekly-xp-header">
+          <span className="weekly-xp-label">⚡ XP Minggu Ini</span>
+          <span className="weekly-xp-amount">{stats.weeklyXp ?? 0} XP</span>
+        </div>
+        <div className="weekly-xp-bar-track">
+          <div
+            className="weekly-xp-bar-fill"
+            style={{ width: `${Math.min(100, Math.round(((stats.weeklyXp ?? 0) / 500) * 100))}%` }}
+          />
+        </div>
+        {(stats.weeklyXp ?? 0) >= 500 && (
+          <div style={{ fontSize: '0.72rem', color: 'var(--success)', marginTop: '2px' }}>
+            🎉 Target XP minggu ini tercapai!
+          </div>
+        )}
+        {(stats.weeklyXp ?? 0) < 500 && (
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {500 - (stats.weeklyXp ?? 0)} XP lagi untuk target minggu ini
+          </div>
+        )}
+      </div>
+
       {/* ── Copy Stats Button ── */}
       <button className="stats-copy-btn" onClick={handleCopyStats}>
         <Copy size={14} />
@@ -485,6 +511,11 @@ export default function ProgressDashboard({
             <span className="stat-card-unit">hari</span>
           </div>
           <div className="stat-card-label">Streak</div>
+          {(stats.longestStreak ?? 0) > 0 && (
+            <div className="longest-streak-chip">
+              🏆 Terbaik: <strong>{stats.longestStreak}</strong> hari
+            </div>
+          )}
         </div>
 
         <div className="stat-card glass-panel">
