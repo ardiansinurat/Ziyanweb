@@ -6,6 +6,7 @@ import { Volume2, BookmarkPlus, BookmarkCheck, ChevronRight } from 'lucide-react
 import { useState, useEffect, useRef } from 'react';
 import HanziWriter from 'hanzi-writer';
 import { ColorizePinyin } from '../../utils/toneColor';
+import { getItem, setItem } from '../../utils/storage';
 
 const DAILY_WORDS = [
   // HSK 1
@@ -94,6 +95,10 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
   const [animating, setAnimating] = useState(false);
   const [showStroke, setShowStroke] = useState(false);
   const strokeRef = useRef<HTMLDivElement>(null);
+  const [visitedIndices, setVisitedIndices] = useState<Set<number>>(() => {
+    const stored = getItem<number[]>('daily_word_visited', []);
+    return new Set(stored);
+  });
 
   useEffect(() => {
     const now = new Date();
@@ -105,6 +110,16 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
     const dayOfYear = Math.floor(diff / oneDay);
     setDayIndex(dayOfYear % DAILY_WORDS.length);
   }, []);
+
+  useEffect(() => {
+    setVisitedIndices(prev => {
+      if (prev.has(dayIndex)) return prev;
+      const next = new Set(prev);
+      next.add(dayIndex);
+      setItem('daily_word_visited', Array.from(next));
+      return next;
+    });
+  }, [dayIndex]);
 
   const word = DAILY_WORDS[dayIndex];
   const dayNumber = dayIndex + 1;
@@ -182,6 +197,11 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
       {showStroke && (
         <div className="daily-word-stroke-container" ref={strokeRef} style={{ width: 120, height: 120 }} />
       )}
+
+      {/* Seen counter */}
+      <div className="daily-word-seen-counter">
+        {visitedIndices.size}/{DAILY_WORDS.length} kata dilihat
+      </div>
 
       {onSaveWord && (
         <button
