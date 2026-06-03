@@ -8,14 +8,24 @@ import type { ThemeId } from '../../types';
 
 interface Props {
   isOpen: boolean;
-  onComplete: (data: { name: string; hskLevel: number; theme: ThemeId }) => void;
+  onComplete: (data: { name: string; hskLevel: number; theme: ThemeId; avatar: string }) => void;
 }
+
+const FEATURE_CARDS = [
+  { emoji: '🤖', title: 'AI Percakapan', desc: 'Chat dengan Ziyan, tutor Mandarin AI yang selalu siap membantu' },
+  { emoji: '🃏', title: 'Kartu Hafalan', desc: 'Sistem SRS (Spaced Repetition) untuk menghafal kosakata efektif' },
+  { emoji: '📚', title: 'Kurikulum HSK', desc: 'Pelajaran terstruktur dari HSK 1 hingga HSK 3' },
+  { emoji: '📊', title: 'Lacak Kemajuan', desc: 'XP, streak, pencapaian, dan statistik belajarmu' },
+];
+
+const AVATAR_OPTIONS = ['🐼', '🐯', '🦁', '🐻', '🐨', '🦊'];
 
 export function OnboardingModal({ isOpen, onComplete }: Props) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [hskLevel, setHskLevel] = useState(1);
   const [theme, setTheme] = useState<ThemeId>('light-pastel');
+  const [avatar, setAvatar] = useState('🐼');
 
   if (!isOpen) return null;
 
@@ -29,7 +39,7 @@ export function OnboardingModal({ isOpen, onComplete }: Props) {
   ];
 
   const handleComplete = () => {
-    onComplete({ name: name.trim() || 'Pelajar', hskLevel, theme });
+    onComplete({ name: name.trim() || 'Pelajar', hskLevel, theme, avatar });
   };
 
   return (
@@ -47,7 +57,64 @@ export function OnboardingModal({ isOpen, onComplete }: Props) {
             <div className="onboarding-emoji">🐉</div>
             <h2>Selamat Datang di Ziyan!</h2>
             <p>Tutor Mandarin interaktifmu untuk bahasa Indonesia. Yuk mulai perjalanan belajarmu!</p>
-            <div className="form-group" style={{ marginTop: '20px' }}>
+
+            {/* Feature highlight cards */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem',
+              margin: '1rem 0',
+              textAlign: 'left',
+            }}>
+              {FEATURE_CARDS.map(card => (
+                <div
+                  key={card.title}
+                  style={{
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '12px',
+                    padding: '0.6rem 0.75rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <div style={{ fontSize: '1.3rem' }}>{card.emoji}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.78rem' }}>{card.title}</div>
+                  <div style={{ fontSize: '0.68rem', opacity: 0.7, lineHeight: 1.3 }}>{card.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Avatar selection */}
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 500 }}>
+                Pilih avatarmu:
+              </label>
+              <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                {AVATAR_OPTIONS.map(em => (
+                  <button
+                    key={em}
+                    onClick={() => setAvatar(em)}
+                    style={{
+                      fontSize: '1.5rem',
+                      background: avatar === em ? 'var(--accent-primary, #6c8ef5)' : 'var(--glass-bg)',
+                      border: avatar === em ? '2px solid var(--accent-primary, #6c8ef5)' : '2px solid var(--glass-border)',
+                      borderRadius: '10px',
+                      padding: '0.3rem 0.45rem',
+                      cursor: 'pointer',
+                      transition: 'transform 0.15s, border-color 0.15s',
+                      transform: avatar === em ? 'scale(1.15)' : 'scale(1)',
+                    }}
+                    title={em}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '12px' }}>
               <label>Siapa namamu?</label>
               <input
                 type="text"
