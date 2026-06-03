@@ -5,6 +5,7 @@
 import { useMemo, useEffect, useCallback } from 'react';
 import { useToast } from '../UI/Toast';
 import { getItem, setItem } from '../../utils/storage';
+import { ColorizePinyin } from '../../utils/toneColor';
 import {
   MessageSquare,
   Flame,
@@ -114,6 +115,34 @@ const ACHIEVEMENTS: Achievement[] = [
     name: 'Dedikasi',
     description: 'Streak 30 hari',
     check: (s) => s.streakDays >= 30,
+  },
+  {
+    id: 'messages_50',
+    icon: '🗣️',
+    name: 'Penutur Aktif',
+    description: 'Kirim 50 pesan total',
+    check: (s) => s.totalMessages >= 50,
+  },
+  {
+    id: 'streak_14',
+    icon: '🌟',
+    name: 'Dua Minggu!',
+    description: 'Streak 14 hari',
+    check: (s) => s.streakDays >= 14,
+  },
+  {
+    id: 'vocab_100',
+    icon: '🎓',
+    name: 'Kuasai 100 Kata',
+    description: 'Simpan 100 kosakata',
+    check: (_s, _a, wc) => wc >= 100,
+  },
+  {
+    id: 'no_mistakes',
+    icon: '💯',
+    name: 'Tanpa Cela',
+    description: 'Akurasi sempurna 100%',
+    check: (_s, acc) => acc >= 100,
   },
 ];
 
@@ -313,6 +342,7 @@ export default function ProgressDashboard({
 
   const last7 = getLast7Days();
   const last30 = getLast30Days();
+  const bestDay = last30.reduce((best, d) => d.messages > best.messages ? d : best, { date: '', messages: 0 });
   const maxMessages = Math.max(...last7.map(d => d.messages), 1);
   const hasActivity = last7.some(d => d.messages > 0);
 
@@ -405,9 +435,12 @@ export default function ProgressDashboard({
 
   // Encouragement text
   const encouragement = useMemo(() => {
-    if (stats.streakDays >= 7) return 'Luar biasa! Terus pertahankan semangat belajarmu! 🚀';
-    if (stats.streakDays >= 3) return 'Bagus! Kamu sedang membangun kebiasaan belajar yang kuat! 💪';
-    if (stats.totalMessages >= 10) return 'Kamu berkembang pesat! Terus berlatih setiap hari! ✨';
+    if (stats.streakDays >= 30) return 'Luar biasa! Kamu adalah legenda belajar Mandarin! 👑';
+    if (stats.streakDays >= 14) return 'Dua minggu streak! Kamu luar biasa! 🌟';
+    if (stats.streakDays >= 7) return 'Satu minggu penuh! Terus pertahankan semangat! 🚀';
+    if (stats.streakDays >= 3) return 'Bagus! Kamu sedang membangun kebiasaan belajar! 💪';
+    if (stats.totalMessages >= 100) return 'Sudah 100 pesan! Kamu sangat produktif! ✨';
+    if (stats.totalMessages >= 10) return 'Kamu berkembang pesat! Terus berlatih setiap hari! 🌱';
     return 'Mulai perjalananmu belajar Mandarin bersama Ziyan! 🌟';
   }, [stats.streakDays, stats.totalMessages]);
 
@@ -516,6 +549,16 @@ export default function ProgressDashboard({
       <section className="dashboard-section glass-panel">
         <h3 className="section-title">Aktivitas 30 Hari</h3>
         <ActivityHeatmap days={last30} />
+        {bestDay.messages > 0 && (
+          <div className="best-day-badge">
+            🏆 Hari terbaik: <strong>{bestDay.messages} pesan</strong>
+            {bestDay.date && (
+              <span style={{ fontSize: '0.68rem', marginLeft: '4px', opacity: 0.7 }}>
+                ({new Date(bestDay.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })})
+              </span>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── Learning Progress ── */}
@@ -597,7 +640,7 @@ export default function ProgressDashboard({
             {recentWords.map((w) => (
               <li key={w.id} className="recent-vocab-item">
                 <span className="vocab-hanzi">{w.hanzi}</span>
-                <span className="vocab-pinyin">{w.pinyin}</span>
+                <span className="vocab-pinyin"><ColorizePinyin pinyin={w.pinyin} /></span>
                 <span className="vocab-meaning">{w.meaning}</span>
               </li>
             ))}
