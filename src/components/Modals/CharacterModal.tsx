@@ -4,7 +4,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import HanziWriter from 'hanzi-writer';
-import { X, Play, RefreshCw, CheckCircle, Volume2 } from 'lucide-react';
+import { X, Play, RefreshCw, CheckCircle, Volume2, Copy } from 'lucide-react';
+import { useToast } from '../UI/Toast';
 import { useTheme } from '../../hooks/useTheme';
 import { HSK_WORDS } from '../../data/hsk-words';
 import { ColorizePinyin } from '../../utils/toneColor';
@@ -21,6 +22,8 @@ export function CharacterModal({ character, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const writerRef = useRef<HanziWriter | null>(null);
   const { isDark } = useTheme();
+
+  const { showToast } = useToast();
 
   const [mode, setMode] = useState<Mode>('view');
   const [quizCorrect, setQuizCorrect] = useState(0);
@@ -81,6 +84,15 @@ export function CharacterModal({ character, onClose }: Props) {
   }, [character, onClose]);
 
   if (!character) return null;
+
+  const handleCopy = () => {
+    if (!character) return;
+    navigator.clipboard.writeText(character).then(() => {
+      showToast(`"${character}" disalin!`, 'success');
+    }).catch(() => {
+      showToast('Gagal menyalin', 'info');
+    });
+  };
 
   const handleAnimate = () => {
     setMode('view');
@@ -226,6 +238,9 @@ export function CharacterModal({ character, onClose }: Props) {
 
             {isChineseCharacter && (
               <div className="character-actions">
+                <button className="char-copy-btn" onClick={handleCopy} title="Salin karakter">
+                  <Copy size={14} /> Salin "{character}"
+                </button>
                 <button className="btn-secondary flex-center gap-2" onClick={handleAnimate}>
                   <Play size={16} /> Animasi
                 </button>
@@ -242,6 +257,32 @@ export function CharacterModal({ character, onClose }: Props) {
           <div className="char-dict-panel">
             <div className="char-unicode">
               {character} — U+{character?.codePointAt(0)?.toString(16).toUpperCase().padStart(4, '0')}
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center',
+              padding: '8px 0 12px',
+              borderBottom: '1px solid var(--glass-border)',
+              marginBottom: '8px',
+            }}>
+              {[
+                { font: 'serif', label: '宋体' },
+                { font: 'sans-serif', label: '黑体' },
+                { font: 'cursive', label: '草书' },
+              ].map(({ font, label }) => (
+                <div key={font} style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '2rem',
+                    fontFamily: font,
+                    lineHeight: 1.2,
+                    color: 'var(--text-main)',
+                  }}>
+                    {character}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{label}</div>
+                </div>
+              ))}
             </div>
             {dictMatches.length === 0 ? (
               <p className="char-dict-empty">Karakter tidak ditemukan dalam database HSK 1-3.</p>
@@ -270,6 +311,13 @@ export function CharacterModal({ character, onClose }: Props) {
                 </div>
               ))
             )}
+            <button
+              className="char-copy-btn"
+              onClick={handleCopy}
+              style={{ marginTop: '8px' }}
+            >
+              <Copy size={14} /> Salin "{character}"
+            </button>
           </div>
         )}
       </div>
