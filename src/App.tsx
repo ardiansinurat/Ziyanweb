@@ -223,6 +223,7 @@ function App() {
                   onSendToChat={handleSendToChat}
                   isWordSaved={isWordSaved}
                   onSaveWord={(word) => { addWord(word); showToast('Kata disimpan!', 'success'); }}
+                  onShowCharacter={setSelectedChar}
                 />
               </div>
             )}

@@ -33,6 +33,28 @@ interface LessonsViewProps {
   onSendToChat: (text: string) => void;
   isWordSaved?: (hanzi: string) => boolean;
   onSaveWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
+  onShowCharacter?: (char: string) => void;
+}
+
+// ── Clickable Hanzi helper ────────────────────────────────────
+function ClickableHanzi({ text, onShowCharacter }: { text: string; onShowCharacter?: (c: string) => void }) {
+  return (
+    <>
+      {text.split('').map((char, i) => {
+        const isHanzi = /[一-龥]/.test(char);
+        return isHanzi ? (
+          <span
+            key={i}
+            className="clickable-hanzi"
+            onClick={() => onShowCharacter?.(char)}
+            title="Lihat urutan guratan"
+          >
+            {char}
+          </span>
+        ) : <span key={i}>{char}</span>;
+      })}
+    </>
+  );
 }
 
 // ── Audio helper ──────────────────────────────────────────────
@@ -299,7 +321,7 @@ function VocabTab({ lesson, isWordSaved, onSaveWord }: VocabTabProps) {
 }
 
 // ── Sub-component: Dialog Tab ─────────────────────────────────
-function DialogTab({ lesson }: { lesson: Lesson }) {
+function DialogTab({ lesson, onShowCharacter }: { lesson: Lesson; onShowCharacter?: (char: string) => void }) {
   return (
     <div className="dialogue-container">
       {lesson.dialogue.map((line, i) => (
@@ -311,7 +333,9 @@ function DialogTab({ lesson }: { lesson: Lesson }) {
             {line.speaker === 'A' ? '🧑 Pembicara A' : '💬 Pembicara B'}
           </div>
           <div className="dialogue-bubble">
-            <div className="dialogue-hanzi">{line.hanzi}</div>
+            <div className="dialogue-hanzi">
+              <ClickableHanzi text={line.hanzi} onShowCharacter={onShowCharacter} />
+            </div>
             <div className="dialogue-pinyin">{line.pinyin}</div>
             <div className="dialogue-translation">{line.translation}</div>
             <div className="dialogue-line-actions">
@@ -331,7 +355,7 @@ function DialogTab({ lesson }: { lesson: Lesson }) {
 }
 
 // ── Sub-component: Grammar Tab ────────────────────────────────
-function GrammarTab({ lesson }: { lesson: Lesson }) {
+function GrammarTab({ lesson, onShowCharacter }: { lesson: Lesson; onShowCharacter?: (char: string) => void }) {
   return (
     <div className="grammar-section">
       {lesson.grammar.map((g, i) => (
@@ -347,7 +371,9 @@ function GrammarTab({ lesson }: { lesson: Lesson }) {
             <div className="grammar-examples-label">Contoh Kalimat</div>
             {g.examples.map((ex, j) => (
               <div key={j} className="grammar-example">
-                <div className="grammar-example-hanzi">{ex.hanzi}</div>
+                <div className="grammar-example-hanzi">
+                  <ClickableHanzi text={ex.hanzi} onShowCharacter={onShowCharacter} />
+                </div>
                 <div className="grammar-example-pinyin">{ex.pinyin}</div>
                 <div className="grammar-example-translation">{ex.translation}</div>
               </div>
@@ -425,6 +451,7 @@ interface DetailProps {
   onStartPractice: (prompt: string) => void;
   isWordSaved?: (hanzi: string) => boolean;
   onSaveWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
+  onShowCharacter?: (char: string) => void;
 }
 
 function LessonDetail({
@@ -435,6 +462,7 @@ function LessonDetail({
   onStartPractice,
   isWordSaved,
   onSaveWord,
+  onShowCharacter,
 }: DetailProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('vocab');
 
@@ -501,8 +529,8 @@ function LessonDetail({
             onSaveWord={onSaveWord}
           />
         )}
-        {activeTab === 'dialog' && <DialogTab lesson={lesson} />}
-        {activeTab === 'grammar' && <GrammarTab lesson={lesson} />}
+        {activeTab === 'dialog' && <DialogTab lesson={lesson} onShowCharacter={onShowCharacter} />}
+        {activeTab === 'grammar' && <GrammarTab lesson={lesson} onShowCharacter={onShowCharacter} />}
         {activeTab === 'practice' && (
           <PracticeTab
             lesson={lesson}
@@ -537,7 +565,7 @@ function LessonDetail({
 }
 
 // ── Main Component ────────────────────────────────────────────
-export function LessonsView({ onSendToChat, isWordSaved, onSaveWord }: LessonsViewProps) {
+export function LessonsView({ onSendToChat, isWordSaved, onSaveWord, onShowCharacter }: LessonsViewProps) {
   // Persistence: track completed lesson IDs
   const [completedIds, setCompletedIds] = useState<Set<string>>(
     () => new Set(getItem<string[]>('completed_lessons', [])),
@@ -571,6 +599,7 @@ export function LessonsView({ onSendToChat, isWordSaved, onSaveWord }: LessonsVi
           onStartPractice={handleStartPractice}
           isWordSaved={isWordSaved}
           onSaveWord={onSaveWord}
+          onShowCharacter={onShowCharacter}
         />
       ) : (
         <LessonBrowser
