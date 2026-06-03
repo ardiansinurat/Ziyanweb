@@ -2429,3 +2429,118 @@ body, .glass-panel, .btn-icon, .btn-primary, .btn-secondary, .message-bubble, .t
   text-align: center;
   margin-top: 2px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 9 — QuickPhrases favorites, Sidebar collapsible, Best-day
+   ═══════════════════════════════════════════════════════════ */
+
+/* QuickPhrases search bar */
+.quick-phrases-search {
+  padding: 0 0.5rem 0.3rem;
+}
+.quick-phrases-search-input {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.32rem 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.quick-phrases-search-input::placeholder { color: var(--text-muted); }
+.quick-phrases-search-input:focus { border-color: var(--primary); }
+
+/* Phrase row with fav button */
+.quick-phrase-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.quick-phrase-fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 3px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1;
+  transition: color 0.15s, transform 0.12s;
+  flex-shrink: 0;
+}
+.quick-phrase-fav-btn:hover { color: #f7c948; transform: scale(1.2); }
+.quick-phrase-fav-btn.active { color: #f7c948; }
+
+/* Usage count badge */
+.quick-phrase-usage {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  background: var(--glass-border);
+  border-radius: 8px;
+  padding: 1px 5px;
+  margin-left: auto;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+/* Sidebar collapsible section */
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-section-toggle:hover {
+  background: var(--glass-border);
+  color: var(--text-main);
+}
+.sidebar-section-toggle-icon {
+  transition: transform 0.22s ease;
+  font-size: 0.65rem;
+}
+.sidebar-section-toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+.sidebar-section-body {
+  overflow: hidden;
+  transition: max-height 0.28s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+.sidebar-section-body.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Best day stat badge in dashboard */
+.best-day-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-top: 6px;
+}
+.best-day-badge strong {
+  color: var(--primary);
+  font-weight: 700;
+}
