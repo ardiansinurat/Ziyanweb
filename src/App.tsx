@@ -129,8 +129,9 @@ function App() {
     showToast('Percakapan baru dimulai', 'info');
   }, [clearChat, showToast]);
 
-  const handleOnboardingComplete = useCallback((data: { name: string; hskLevel: number; theme: ThemeId }) => {
+  const handleOnboardingComplete = useCallback((data: { name: string; hskLevel: number; theme: ThemeId; avatar?: string }) => {
     setUserName(data.name);
+    if (data.avatar) setUserAvatar(data.avatar);
     setHskLevel(data.hskLevel);
     setTheme(data.theme);
     setItem('onboarded', true);
