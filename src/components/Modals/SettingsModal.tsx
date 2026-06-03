@@ -4,8 +4,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, X } from 'lucide-react';
-import type { ThemeId } from '../../types';
+import type { ThemeId, UserStats, VocabWord } from '../../types';
 import { THEME_OPTIONS } from '../../types';
+import { getItem } from '../../utils/storage';
 
 interface Props {
   isOpen: boolean;
@@ -64,9 +65,42 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
 
   if (!isOpen) return null;
 
+  const currentStats = getItem<UserStats>('user_stats', {
+    totalMessages: 0, totalWords: 0, corrections: 0, correctMessages: 0,
+    streakDays: 0, lastActiveDate: '', dailyMessageCount: 0, xp: 0, level: 1,
+  });
+  const vocabCount = getItem<VocabWord[]>('vocab_words', []).length;
+  const accuracy = currentStats.totalMessages > 0
+    ? Math.round((currentStats.correctMessages / currentStats.totalMessages) * 100)
+    : 100;
+
   const handleSave = () => {
     onSave({ name: tempName, avatar: tempAvatar, theme: tempTheme, hskLevel: tempHsk, dailyGoal: tempGoal });
     onClose();
+  };
+
+  const handleExportData = () => {
+    const data: Record<string, unknown> = {};
+    const keys = [
+      'user_stats', 'vocab_words', 'current_messages', 'activity_history',
+      'srs_data', 'flashcard_known', 'daily_word_visited', 'unlocked_achievements',
+      'vocab_mastery', 'quick_phrase_favs', 'quick_phrase_usage', 'msg_reactions', 'msg_thumbs',
+    ];
+    keys.forEach(k => {
+      try {
+        const raw = localStorage.getItem(`ziyan_${k}`);
+        if (raw) data[k] = JSON.parse(raw);
+      } catch {
+        // skip
+      }
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ziyan-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -208,9 +242,40 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
           </p>
         </div>
 
+        {/* Stats Overview */}
+        <div className="form-group">
+          <label>📊 Progress Belajar</label>
+          <div className="settings-stats-overview">
+            <div className="settings-stat-chip">
+              <span className="settings-stat-chip-value">Lv.{currentStats.level}</span>
+              <span className="settings-stat-chip-label">{currentStats.xp} XP</span>
+            </div>
+            <div className="settings-stat-chip">
+              <span className="settings-stat-chip-value">{currentStats.streakDays}🔥</span>
+              <span className="settings-stat-chip-label">hari streak</span>
+            </div>
+            <div className="settings-stat-chip">
+              <span className="settings-stat-chip-value">{accuracy}%</span>
+              <span className="settings-stat-chip-label">akurasi</span>
+            </div>
+            <div className="settings-stat-chip">
+              <span className="settings-stat-chip-value">{vocabCount}</span>
+              <span className="settings-stat-chip-label">kosakata</span>
+            </div>
+          </div>
+        </div>
+
         <div className="form-group danger-zone">
           <label style={{ color: 'var(--warning)' }}>⚠️ Zona Bahaya</label>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              className="btn-secondary"
+              onClick={handleExportData}
+              type="button"
+              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+            >
+              📦 Backup Data
+            </button>
             {onResetStats && (
               <button
                 className="btn-danger-sm"
