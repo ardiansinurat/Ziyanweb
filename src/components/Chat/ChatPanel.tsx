@@ -52,8 +52,22 @@ export function ChatPanel({
         {!hasMessages && (
           <div className="empty-state">
             <div className="empty-state-emoji">🐉</div>
-            <h3>Selamat Datang!</h3>
+            <h3>你好！Selamat Datang!</h3>
             <p>Mulai percakapan dengan Ziyan untuk berlatih bahasa Mandarin.</p>
+            <div className="empty-state-features">
+              <div className="feature-hint">
+                <span>📚</span>
+                <span>Tab <strong>Belajar</strong> — Kurikulum HSK 1-3</span>
+              </div>
+              <div className="feature-hint">
+                <span>🃏</span>
+                <span>Tab <strong>Kartu</strong> — Hafal kosakata</span>
+              </div>
+              <div className="feature-hint">
+                <span>📊</span>
+                <span>Tab <strong>Progress</strong> — Pantau kemajuanmu</span>
+              </div>
+            </div>
           </div>
         )}
 
