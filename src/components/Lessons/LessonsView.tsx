@@ -13,6 +13,8 @@ import {
   Volume2,
   BookmarkPlus,
   BookmarkCheck,
+  Search,
+  X,
 } from 'lucide-react';
 
 import {
@@ -72,14 +74,18 @@ function LessonBrowser({
   onSetHskFilter,
   onSetCategoryFilter,
 }: BrowserProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Derive the visible lessons
   const filteredLessons = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return LESSONS.filter((l) => {
       const matchHsk = hskFilter === 'all' || l.hskLevel === hskFilter;
       const matchCat = categoryFilter === 'all' || l.category === categoryFilter;
-      return matchHsk && matchCat;
+      const matchSearch = !q || l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q);
+      return matchHsk && matchCat && matchSearch;
     });
-  }, [hskFilter, categoryFilter]);
+  }, [hskFilter, categoryFilter, searchQuery]);
 
   // Build category list from visible lessons (before category filter) for pills
   const visibleCategories = useMemo(() => {
@@ -96,6 +102,24 @@ function LessonBrowser({
       <div className="lessons-header">
         <h2>Kurikulum Belajar 📚</h2>
         <p>Pelajari Mandarin dari HSK 1 hingga HSK 3 secara terstruktur</p>
+      </div>
+
+      {/* Search Bar */}
+      <div style={{ padding: '10px 24px 0' }}>
+        <div className="lessons-search-wrap">
+          <Search size={14} className="lessons-search-icon" />
+          <input
+            className="lessons-search-input"
+            placeholder="Cari pelajaran..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="lessons-search-clear" onClick={() => setSearchQuery('')}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* HSK Filter */}
@@ -139,10 +163,18 @@ function LessonBrowser({
       {/* Lesson Grid */}
       <div className="lessons-scroll-area">
         {filteredLessons.length === 0 ? (
-          <div className="lessons-empty">
-            <span className="empty-icon">📭</span>
-            Tidak ada pelajaran yang cocok dengan filter ini.
-          </div>
+          searchQuery ? (
+            <div className="lessons-no-results">
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
+              <p>Tidak ada pelajaran yang cocok dengan "{searchQuery}"</p>
+              <p style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: 'var(--text-muted)' }}>Coba kata kunci lain</p>
+            </div>
+          ) : (
+            <div className="lessons-empty">
+              <span className="empty-icon">📭</span>
+              Tidak ada pelajaran yang cocok dengan filter ini.
+            </div>
+          )
         ) : (
           <div className="lessons-grid">
             {filteredLessons.map((lesson) => {
@@ -282,6 +314,15 @@ function DialogTab({ lesson }: { lesson: Lesson }) {
             <div className="dialogue-hanzi">{line.hanzi}</div>
             <div className="dialogue-pinyin">{line.pinyin}</div>
             <div className="dialogue-translation">{line.translation}</div>
+            <div className="dialogue-line-actions">
+              <button
+                className="dialogue-play-btn"
+                onClick={(e) => { e.stopPropagation(); playWord(line.hanzi); }}
+                title="Dengarkan"
+              >
+                <Volume2 size={13} /> Putar
+              </button>
+            </div>
           </div>
         </div>
       ))}
