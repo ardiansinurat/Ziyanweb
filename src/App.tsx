@@ -88,6 +88,11 @@ function App() {
     setIsSidebarOpen(false);
   }, [handleSend]);
 
+  const handleSaveDailyWord = useCallback((word: { hanzi: string; pinyin: string; meaning: string; example: string }) => {
+    addWord({ hanzi: word.hanzi, pinyin: word.pinyin, meaning: word.meaning, example: word.example, source: 'daily' });
+    showToast('Kata harian disimpan!', 'success');
+  }, [addWord, showToast]);
+
   return (
     <>
       <div className="theme-bg-layer">
@@ -106,11 +111,13 @@ function App() {
           streakDays={stats.streakDays}
           accuracy={accuracy}
           totalWords={totalWords}
+          totalMessages={stats.totalMessages}
           dailyCount={stats.dailyMessageCount}
           vocabWords={words}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onRemoveWord={removeWord}
           onStartPractice={handleStartPractice}
+          onSaveDailyWord={handleSaveDailyWord}
           playAudio={playAudio}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}

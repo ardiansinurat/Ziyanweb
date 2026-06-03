@@ -9,6 +9,13 @@ import { VocabNotebook } from './VocabNotebook';
 import { DailyReminder } from './DailyReminder';
 import { DailyWordCard } from './DailyWordCard';
 
+interface WordObj {
+  hanzi: string;
+  pinyin: string;
+  meaning: string;
+  example: string;
+}
+
 interface Props {
   userName: string;
   userAvatar: string;
@@ -16,11 +23,13 @@ interface Props {
   streakDays: number;
   accuracy: number;
   totalWords: number;
+  totalMessages: number;
   dailyCount: number;
   vocabWords: VocabWord[];
   onOpenSettings: () => void;
   onRemoveWord: (id: string) => void;
   onStartPractice: () => void;
+  onSaveDailyWord?: (word: WordObj) => void;
   playAudio: (text: string) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -33,11 +42,13 @@ export function Sidebar({
   streakDays,
   accuracy,
   totalWords,
+  totalMessages,
   dailyCount,
   vocabWords,
   onOpenSettings,
   onRemoveWord,
   onStartPractice,
+  onSaveDailyWord,
   playAudio,
   isOpen,
   onClose,
@@ -59,9 +70,10 @@ export function Sidebar({
           streakDays={streakDays}
           accuracy={accuracy}
           totalWords={totalWords}
+          totalMessages={totalMessages}
         />
 
-        <DailyWordCard playAudio={playAudio} />
+        <DailyWordCard playAudio={playAudio} onSaveWord={onSaveDailyWord} />
 
         <DailyReminder
           dailyCount={dailyCount}
