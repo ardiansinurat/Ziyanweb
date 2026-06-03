@@ -4,7 +4,7 @@
 
 import { Volume2, BookmarkPlus, BookmarkCheck, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import HanziWriter from 'hanziwriter';
+import HanziWriter from 'hanzi-writer';
 import { ColorizePinyin } from '../../utils/toneColor';
 
 const DAILY_WORDS = [
@@ -125,7 +125,7 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
       strokeColor: '#4A90D9',
       outlineColor: document.documentElement.getAttribute('data-theme')?.startsWith('dark') ? '#4a4a5a' : '#cccccc',
       showCharacter: false,
-    }).animateCharacter();
+    } as any).animateCharacter();
     return () => {
       if (strokeRef.current) strokeRef.current.innerHTML = '';
     };

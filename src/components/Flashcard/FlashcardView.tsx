@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Volume2 } from 'lucide-react';
-import HanziWriter from 'hanziwriter';
+import HanziWriter from 'hanzi-writer';
 import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
@@ -189,7 +189,7 @@ function HanziPractice({ hanzi }: HanziPracticeProps) {
       drawingWidth: 4,
       showHintAfterMisses: 2,
       highlightOnComplete: true,
-    });
+    } as any);
     writer.quiz({ onComplete: () => {} });
 
     return () => {
