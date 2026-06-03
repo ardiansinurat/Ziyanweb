@@ -17,10 +17,14 @@ import { DEFAULT_GREETING } from '../types';
 // Each exchange (user + AI) = 2 messages, so 8 = last 4 exchanges.
 const CONTEXT_WINDOW = 8;
 
-// Lean system prompt — same meaning, ~40% fewer tokens
+// Lean system prompt — concise but precise instructions
 const SYSTEM_PROMPT = `Kamu adalah Ziyan, tutor Mandarin. Balas SELALU dengan JSON murni tanpa markdown:
-{"text":"<Hanzi>","pinyin":"<pinyin>","translation":"<terjemahan Indonesia>","correction":"<koreksi jika ada, atau string kosong>"}
-Koreksi kesalahan grammar jika ada. Sesuaikan tingkat kesulitan dengan level pengguna.`;
+{"text":"<Hanzi>","pinyin":"<pinyin>","translation":"<terjemahan Indonesia>","correction":"<koreksi atau kosong>","tip":"<tip grammar/budaya singkat atau kosong>"}
+Aturan:
+- Sesuaikan kosakata & struktur kalimat dengan level HSK pengguna
+- Koreksi: tampilkan kalimat salah lalu versi benar. Contoh: "❌ 我是去 → ✅ 我去"
+- Panjang respons: singkat untuk salam/basa-basi, panjang untuk penjelasan grammar
+- tip: isi hanya jika ada poin grammar/budaya yang berguna; kosong jika tidak perlu`;
 
 export function useChat(hskLevel: number = 1) {
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -137,6 +141,7 @@ export function useChat(hskLevel: number = 1) {
           pinyin: parsed.pinyin || '',
           translation: parsed.translation || '',
           correction: parsed.correction || '',
+          tip: parsed.tip || '',
           sender: 'ai',
           timestamp: Date.now(),
         };

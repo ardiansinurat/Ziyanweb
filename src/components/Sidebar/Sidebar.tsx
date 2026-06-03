@@ -25,6 +25,8 @@ interface Props {
   totalWords: number;
   totalMessages: number;
   dailyCount: number;
+  xp?: number;
+  level?: number;
   vocabWords: VocabWord[];
   onOpenSettings: () => void;
   onRemoveWord: (id: string) => void;
@@ -44,6 +46,8 @@ export function Sidebar({
   totalWords,
   totalMessages,
   dailyCount,
+  xp,
+  level,
   vocabWords,
   onOpenSettings,
   onRemoveWord,
@@ -63,6 +67,8 @@ export function Sidebar({
           name={userName}
           avatar={userAvatar}
           hskLevel={hskLevel}
+          xp={xp}
+          level={level}
           onOpenSettings={onOpenSettings}
         />
 

@@ -3,7 +3,7 @@
 // ============================================================
 
 import { useState } from 'react';
-import { Volume2, AlertCircle, Copy, BookmarkPlus, BookmarkCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Volume2, AlertCircle, Lightbulb, Copy, BookmarkPlus, BookmarkCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { Message } from '../../types';
 import { useToast } from '../UI/Toast';
 import { getItem, setItem } from '../../utils/storage';
@@ -160,6 +160,14 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
           <div className="correction" style={{ borderLeft: '3px solid var(--warning)', background: 'rgba(255,193,7,0.08)', borderRadius: '0 6px 6px 0', padding: '6px 10px', marginTop: '6px', gap: '6px' }}>
             <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--warning)' }} />
             <span style={{ color: 'var(--text-main)' }}>{message.correction}</span>
+          </div>
+        )}
+
+        {/* Learning tip */}
+        {isAi && message.tip && (
+          <div className="msg-tip">
+            <Lightbulb size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <span>{message.tip}</span>
           </div>
         )}
 

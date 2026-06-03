@@ -8,6 +8,7 @@ export interface Message {
   pinyin?: string;
   translation?: string;
   correction?: string;
+  tip?: string;
   sender: 'user' | 'ai';
   timestamp: number;
 }
@@ -38,6 +39,8 @@ export interface UserStats {
   streakDays: number;
   lastActiveDate: string; // YYYY-MM-DD
   dailyMessageCount: number;
+  xp: number;    // Experience points
+  level: number; // Learning level (1–10)
 }
 
 export interface UserProfile {

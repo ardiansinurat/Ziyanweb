@@ -128,6 +128,8 @@ function App() {
           totalWords={totalWords}
           totalMessages={stats.totalMessages}
           dailyCount={stats.dailyMessageCount}
+          xp={stats.xp}
+          level={stats.level}
           vocabWords={words}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onRemoveWord={removeWord}
