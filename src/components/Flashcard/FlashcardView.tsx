@@ -2,8 +2,9 @@
 // FlashcardView — Flashcard & Quiz UI
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Volume2 } from 'lucide-react';
+import HanziWriter from 'hanziwriter';
 import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
@@ -160,6 +161,59 @@ function CompletionScreen({ correct, incorrect, total, onReset }: CompletionProp
   );
 }
 
+// ── HanziWriter practice ──────────────────────────────────────
+interface HanziPracticeProps {
+  hanzi: string;
+}
+
+function HanziPractice({ hanzi }: HanziPracticeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const character = hanzi.charAt(0);
+    const isDark = document.documentElement.getAttribute('data-theme')?.startsWith('dark') ?? false;
+
+    // Clear any previous content
+    containerRef.current.innerHTML = '';
+
+    const writer = HanziWriter.create(containerRef.current, character, {
+      width: 180,
+      height: 180,
+      padding: 8,
+      strokeAnimationSpeed: 1.5,
+      delayBetweenStrokes: 50,
+      strokeColor: '#4A90D9',
+      outlineColor: isDark ? '#4a4a5a' : '#cccccc',
+      drawingColor: '#ef4444',
+      drawingWidth: 4,
+      showHintAfterMisses: 2,
+      highlightOnComplete: true,
+    });
+    writer.quiz({ onComplete: () => {} });
+
+    return () => {
+      if ((writer as any).cancelQuiz) {
+        (writer as any).cancelQuiz();
+      }
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
+    };
+  }, [hanzi]);
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className="hanzi-practice-canvas"
+        style={{ width: 180, height: 180 }}
+      />
+      <div className="hanzi-practice-hint">Telusuri karakter untuk berlatih</div>
+    </>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────
 export default function FlashcardView({
   vocabWords,
@@ -186,6 +240,9 @@ export default function FlashcardView({
   // Quiz: track selected answer id (null = unanswered)
   const [answeredId, setAnsweredId] = useState<string | null>(null);
 
+  // Study: track writing practice visibility
+  const [showPractice, setShowPractice] = useState(false);
+
   // Auto-play hanzi when card is flipped to back
   useEffect(() => {
     if (state.isFlipped && currentCard && 'speechSynthesis' in window) {
@@ -206,9 +263,10 @@ export default function FlashcardView({
     window.speechSynthesis.speak(u);
   }, [currentCard]);
 
-  // Reset answeredId whenever card changes
+  // Reset answeredId and showPractice whenever card changes
   useEffect(() => {
     setAnsweredId(null);
+    setShowPractice(false);
   }, [state.currentIndex, state.mode]);
 
   const handleQuizAnswer = useCallback(
@@ -442,6 +500,22 @@ export default function FlashcardView({
                 <div className="srs-interval-hint">
                   ⏱ Review ulang dalam {srsData[currentCard.id].interval} hari
                 </div>
+              )}
+              {/* HanziWriter writing practice toggle */}
+              {state.isFlipped && currentCard && (
+                <>
+                  <button
+                    className="hanzi-practice-btn"
+                    onClick={() => setShowPractice(p => !p)}
+                  >
+                    ✍️ Latihan Tulis
+                  </button>
+                  {showPractice && (
+                    <div className="hanzi-practice-section">
+                      <HanziPractice hanzi={currentCard.hanzi} />
+                    </div>
+                  )}
+                </>
               )}
             </>
           ) : (
