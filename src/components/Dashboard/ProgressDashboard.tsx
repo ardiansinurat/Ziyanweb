@@ -21,6 +21,9 @@ interface ProgressDashboardProps {
   words: VocabWord[];
 }
 
+// ── XP level thresholds ─────────────────────────────────────
+const LEVEL_THRESHOLDS = [0, 100, 250, 500, 900, 1400, 2000, 2700, 3500, 4500];
+
 // ── HSK milestones ───────────────────────────────────────────
 const HSK_LEVELS = [
   { level: 1, label: 'HSK 1', words: 150 },
@@ -253,6 +256,48 @@ function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
   );
 }
 
+// ── XP Progress Bar ──────────────────────────────────────────
+function XpProgressBar({ xp, level }: { xp: number; level: number }) {
+  const currentThreshold = LEVEL_THRESHOLDS[level - 1] ?? 0;
+  const nextThreshold = LEVEL_THRESHOLDS[level] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+  const isMaxLevel = level >= LEVEL_THRESHOLDS.length;
+
+  if (isMaxLevel) {
+    return (
+      <div className="xp-progress-bar-section">
+        <div className="xp-progress-header">
+          <span className="xp-level-label">⭐ Level MAX</span>
+          <span className="xp-total">{xp} XP Total</span>
+        </div>
+        <div className="xp-bar-track">
+          <div className="xp-bar-fill" style={{ width: '100%' }} />
+        </div>
+      </div>
+    );
+  }
+
+  const xpInLevel = xp - currentThreshold;
+  const xpNeeded = nextThreshold - currentThreshold;
+  const pct = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+  const remaining = nextThreshold - xp;
+
+  return (
+    <div className="xp-progress-bar-section">
+      <div className="xp-progress-header">
+        <span className="xp-level-label">Level {level}</span>
+        <span className="xp-next-label">Level {level + 1}</span>
+      </div>
+      <div className="xp-bar-track">
+        <div className="xp-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="xp-progress-footer">
+        <span className="xp-current">{xp} XP</span>
+        <span className="xp-remaining">{remaining} XP lagi ke Level {level + 1}</span>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ───────────────────────────────────────────
 export default function ProgressDashboard({
   stats,
@@ -336,6 +381,9 @@ export default function ProgressDashboard({
           <TrendingUp size={32} />
         </div>
       </div>
+
+      {/* ── XP Progress Bar ── */}
+      <XpProgressBar xp={stats.xp} level={stats.level} />
 
       {/* ── Stats Overview ── */}
       <div className="stats-overview">

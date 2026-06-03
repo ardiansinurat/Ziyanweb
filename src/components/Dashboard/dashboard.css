@@ -641,3 +641,66 @@
 .heatmap-legend { display: flex; justify-content: space-between; align-items: center; }
 .heatmap-active-days { font-size: 0.78rem; color: var(--text-muted); }
 .heatmap-scale { display: flex; align-items: center; gap: 4px; }
+
+/* ── XP Progress Bar ────────────────────────────────────────── */
+.xp-progress-bar-section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.xp-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.xp-level-label {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.xp-next-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.xp-total {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.xp-bar-track {
+  height: 10px;
+  background: var(--glass-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary, var(--primary)));
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.xp-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.xp-current {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.xp-remaining {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
