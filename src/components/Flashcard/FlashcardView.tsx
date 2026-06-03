@@ -225,6 +225,42 @@ export default function FlashcardView({
     [answeredId, markCorrect, markIncorrect],
   );
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      // Don't capture keys when user is typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (state.mode === 'study' && currentCard && !state.isComplete) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          flipCard();
+        } else if ((e.key === 'ArrowRight' || e.key === 'k') && state.isFlipped) {
+          e.preventDefault();
+          markCorrect();
+        } else if ((e.key === 'ArrowLeft' || e.key === 'j') && state.isFlipped) {
+          e.preventDefault();
+          markIncorrect();
+        } else if (e.key === 'n') {
+          e.preventDefault();
+          nextCard();
+        } else if (e.key === 'p') {
+          e.preventDefault();
+          prevCard();
+        }
+      } else if (state.mode === 'quiz' && currentCard && !state.isComplete && answeredId === null) {
+        const idx = parseInt(e.key) - 1;
+        if (idx >= 0 && idx < quizOptions.length) {
+          e.preventDefault();
+          handleQuizAnswer(quizOptions[idx].id, quizOptions[idx].isCorrect);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [state.mode, state.isFlipped, state.isComplete, currentCard, answeredId, flipCard, markCorrect, markIncorrect, nextCard, prevCard, quizOptions, handleQuizAnswer]);
+
   const total = state.score.correct + state.score.incorrect;
   const progressPct = deck.length > 0
     ? Math.round((state.currentIndex / deck.length) * 100)
@@ -382,6 +418,12 @@ export default function FlashcardView({
                   <ChevronRight size={18} />
                 </button>
               </div>
+              {/* Keyboard hint */}
+              {state.mode === 'study' && !state.isComplete && deck.length > 0 && (
+                <div className="flashcard-keyboard-hint">
+                  <kbd>Space</kbd> balik · <kbd>→</kbd> tahu · <kbd>←</kbd> tidak tahu
+                </div>
+              )}
             </>
           ) : (
             <QuizCard
