@@ -37,10 +37,16 @@ export function ProfileCard({ name, avatar, hskLevel, xp = 0, level = 1, onOpenS
     ? 100
     : Math.min(100, Math.round(((xp - currentThreshold) / (nextThreshold - currentThreshold)) * 100));
 
+  const isImageUrl = avatar && /^(data:|http|blob:|\/)/.test(avatar);
+
   return (
     <div className="profile-card">
       {avatar ? (
-        <img src={avatar} alt="Profile" className="avatar" style={{ objectFit: 'cover' }} />
+        isImageUrl ? (
+          <img src={avatar} alt="Profile" className="avatar" style={{ objectFit: 'cover' }} />
+        ) : (
+          <div className="avatar avatar-emoji">{avatar}</div>
+        )
       ) : (
         <div className="avatar">{name.substring(0, 2).toUpperCase()}</div>
       )}

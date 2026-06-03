@@ -113,6 +113,23 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Preview</span>
             </div>
           )}
+          {/* Emoji avatar quick-pick */}
+          <div style={{ marginTop: '10px' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Atau pilih avatar emoji:</p>
+            <div className="avatar-emoji-picker">
+              {['🐼', '🐯', '🦁', '🐻', '🐨', '🦊', '🐱', '🐶', '🐧', '🐸', '🦋', '🌸'].map(emoji => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={`avatar-emoji-option${tempAvatar === emoji ? ' selected' : ''}`}
+                  onClick={() => setTempAvatar(emoji)}
+                  title={emoji}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="form-group">
