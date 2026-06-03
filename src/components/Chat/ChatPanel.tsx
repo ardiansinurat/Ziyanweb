@@ -188,6 +188,7 @@ export function ChatPanel({
             isWordSaved={isWordSaved}
             onSaveWord={onSaveWord}
             onShowCharacter={onShowCharacter}
+            searchHighlight={searchActive && searchQuery ? searchQuery : undefined}
           />
         ))}
 

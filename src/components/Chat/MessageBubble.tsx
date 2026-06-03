@@ -16,6 +16,7 @@ interface Props {
   isWordSaved?: (hanzi: string) => boolean;
   onSaveWord?: (hanzi: string) => void;
   onShowCharacter?: (char: string) => void;
+  searchHighlight?: string;
 }
 
 type Reaction = 'up' | 'down' | null;
@@ -46,7 +47,7 @@ function getStoredReactions(): Record<string, Reaction> {
   return getItem<Record<string, Reaction>>('msg_thumbs', {});
 }
 
-export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord, onShowCharacter }: Props) {
+export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord, onShowCharacter, searchHighlight }: Props) {
   const { showToast } = useToast();
   const isAi = message.sender === 'ai';
 
@@ -96,6 +97,17 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
     setItem('msg_thumbs', stored);
   };
 
+  const searchQuery = searchHighlight?.trim().toLowerCase() ?? '';
+  const lowerText = message.text.toLowerCase();
+  const matchRanges: Set<number> = new Set();
+  if (searchQuery) {
+    let idx = lowerText.indexOf(searchQuery);
+    while (idx !== -1) {
+      for (let k = 0; k < searchQuery.length; k++) matchRanges.add(idx + k);
+      idx = lowerText.indexOf(searchQuery, idx + 1);
+    }
+  }
+
   return (
     <div className={`message ${message.sender}`} style={{ animation: 'slideIn 0.25s ease' }}>
       <div className="message-bubble">
@@ -111,15 +123,21 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
           <span className="msg-text">
             {message.text.split('').map((char, i) => {
               const isHanzi = /[一-龥]/.test(char);
-              return isHanzi ? (
-                <span
-                  key={i}
-                  className="clickable-hanzi"
-                  onClick={() => onShowCharacter?.(char)}
-                  title="Lihat urutan guratan"
-                >
-                  {char}
-                </span>
+              const isMatch = matchRanges.has(i);
+              if (isHanzi) {
+                return (
+                  <span
+                    key={i}
+                    className={`clickable-hanzi${isMatch ? ' message-search-highlight' : ''}`}
+                    onClick={() => onShowCharacter?.(char)}
+                    title="Lihat urutan guratan"
+                  >
+                    {char}
+                  </span>
+                );
+              }
+              return isMatch ? (
+                <mark key={i} className="message-search-highlight">{char}</mark>
               ) : (
                 <span key={i}>{char}</span>
               );
