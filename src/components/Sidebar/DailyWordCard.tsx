@@ -2,7 +2,7 @@
 // DailyWordCard — Display a word of the day with navigation
 // ============================================================
 
-import { Volume2, BookmarkPlus, BookmarkCheck, ChevronRight } from 'lucide-react';
+import { Volume2, BookmarkPlus, BookmarkCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import HanziWriter from 'hanzi-writer';
 import { ColorizePinyin } from '../../utils/toneColor';
@@ -91,6 +91,7 @@ interface Props {
 
 export function DailyWordCard({ playAudio, onSaveWord }: Props) {
   const [dayIndex, setDayIndex] = useState(0);
+  const [todayIndex, setTodayIndex] = useState(0);
   const [saved, setSaved] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [showStroke, setShowStroke] = useState(false);
@@ -109,6 +110,7 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
     const oneDay = 1000 * 60 * 60 * 24;
     const dayOfYear = Math.floor(diff / oneDay);
     setDayIndex(dayOfYear % DAILY_WORDS.length);
+    setTodayIndex(dayOfYear % DAILY_WORDS.length);
   }, []);
 
   useEffect(() => {
@@ -146,6 +148,27 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
     };
   }, [showStroke, word.hanzi]);
 
+  const handlePrev = () => {
+    setAnimating(true);
+    setTimeout(() => {
+      setDayIndex(prev => (prev - 1 + DAILY_WORDS.length) % DAILY_WORDS.length);
+      setSaved(false);
+      setShowStroke(false);
+      setAnimating(false);
+    }, 200);
+  };
+
+  const handleGoToToday = () => {
+    if (dayIndex === todayIndex) return;
+    setAnimating(true);
+    setTimeout(() => {
+      setDayIndex(todayIndex);
+      setSaved(false);
+      setShowStroke(false);
+      setAnimating(false);
+    }, 200);
+  };
+
   const handleNext = () => {
     setAnimating(true);
     setTimeout(() => {
@@ -181,6 +204,9 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
           >
             ✍️
           </button>
+          <button className="msg-action-btn daily-word-prev-btn" onClick={handlePrev} title="Kata sebelumnya">
+            <ChevronLeft size={16} />
+          </button>
           <button className="msg-action-btn" onClick={handleNext} title="Kata berikutnya">
             <ChevronRight size={16} />
           </button>
@@ -202,6 +228,12 @@ export function DailyWordCard({ playAudio, onSaveWord }: Props) {
       <div className="daily-word-seen-counter">
         {visitedIndices.size}/{DAILY_WORDS.length} kata dilihat
       </div>
+
+      {dayIndex !== todayIndex && (
+        <button className="daily-today-btn" onClick={handleGoToToday}>
+          📅 Kata Hari Ini
+        </button>
+      )}
 
       {onSaveWord && (
         <button
