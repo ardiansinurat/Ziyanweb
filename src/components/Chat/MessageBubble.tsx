@@ -2,9 +2,11 @@
 // MessageBubble — Individual chat message component
 // ============================================================
 
-import { Volume2, Info, Copy, BookmarkPlus, BookmarkCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Volume2, AlertCircle, Copy, BookmarkPlus, BookmarkCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { Message } from '../../types';
 import { useToast } from '../UI/Toast';
+import { getItem, setItem } from '../../utils/storage';
 
 interface Props {
   message: Message;
@@ -15,24 +17,40 @@ interface Props {
   onShowCharacter?: (char: string) => void;
 }
 
+type Reaction = 'up' | 'down' | null;
+
 function formatTime(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
   const minutes = Math.floor(diff / 60000);
-  
+
   if (minutes < 1) return 'baru saja';
   if (minutes < 60) return `${minutes}m lalu`;
-  
+
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}j lalu`;
-  
+
+  // More than 1 day — show full date + time
   const date = new Date(timestamp);
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: diff > 365 * 24 * 3600 * 1000 ? 'numeric' : undefined,
+  }) + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getStoredReactions(): Record<string, Reaction> {
+  return getItem<Record<string, Reaction>>('msg_reactions', {});
 }
 
 export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord, onShowCharacter }: Props) {
   const { showToast } = useToast();
   const isAi = message.sender === 'ai';
+
+  const [reaction, setReaction] = useState<Reaction>(() => {
+    if (!isAi || !message.id) return null;
+    return getStoredReactions()[message.id] ?? null;
+  });
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.text).then(() => {
@@ -46,8 +64,21 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
     }
   };
 
+  const handleReaction = (r: 'up' | 'down') => {
+    if (!message.id) return;
+    const next: Reaction = reaction === r ? null : r;
+    setReaction(next);
+    const stored = getStoredReactions();
+    if (next === null) {
+      delete stored[message.id];
+    } else {
+      stored[message.id] = next;
+    }
+    setItem('msg_reactions', stored);
+  };
+
   return (
-    <div className={`message ${message.sender}`}>
+    <div className={`message ${message.sender}`} style={{ animation: 'slideIn 0.25s ease' }}>
       <div className="message-bubble">
         {/* Pinyin line */}
         {isAi && message.pinyin && (
@@ -58,11 +89,11 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
         <div className="text-content">
           <span className="msg-text">
             {message.text.split('').map((char, i) => {
-              const isHanzi = /[\u4E00-\u9FA5]/.test(char);
+              const isHanzi = /[一-龥]/.test(char);
               return isHanzi ? (
-                <span 
-                  key={i} 
-                  className="clickable-hanzi" 
+                <span
+                  key={i}
+                  className="clickable-hanzi"
                   onClick={() => onShowCharacter?.(char)}
                   title="Lihat urutan guratan"
                 >
@@ -98,6 +129,23 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
                   {isWordSaved?.(message.text) ? <BookmarkCheck size={14} /> : <BookmarkPlus size={14} />}
                 </button>
               )}
+              {/* Reaction buttons */}
+              <button
+                className={`msg-action-btn${reaction === 'up' ? ' saved' : ''}`}
+                onClick={() => handleReaction('up')}
+                title="Respons bagus"
+                style={reaction === 'up' ? { color: 'var(--success)' } : {}}
+              >
+                <ThumbsUp size={14} />
+              </button>
+              <button
+                className={`msg-action-btn${reaction === 'down' ? ' saved' : ''}`}
+                onClick={() => handleReaction('down')}
+                title="Respons kurang tepat"
+                style={reaction === 'down' ? { color: 'var(--warning)' } : {}}
+              >
+                <ThumbsDown size={14} />
+              </button>
             </div>
           )}
         </div>
@@ -107,11 +155,11 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
           <div className="translation">{message.translation}</div>
         )}
 
-        {/* Correction */}
+        {/* Correction — improved icon & color */}
         {isAi && message.correction && (
-          <div className="correction">
-            <Info size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <span>{message.correction}</span>
+          <div className="correction" style={{ borderLeft: '3px solid var(--warning)', background: 'rgba(255,193,7,0.08)', borderRadius: '0 6px 6px 0', padding: '6px 10px', marginTop: '6px', gap: '6px' }}>
+            <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--warning)' }} />
+            <span style={{ color: 'var(--text-main)' }}>{message.correction}</span>
           </div>
         )}
 
