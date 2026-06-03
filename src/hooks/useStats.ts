@@ -30,10 +30,22 @@ const DEFAULT_STATS: UserStats = {
   dailyMessageCount: 0,
   xp: 0,
   level: 1,
+  longestStreak: 0,
+  weeklyXp: 0,
+  weekStartDate: '',
 };
 
 function getTodayDate(): string {
   return new Date().toISOString().split('T')[0];
+}
+
+function getWeekStart(): string {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon...
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  const monday = new Date(now);
+  monday.setDate(diff);
+  return monday.toISOString().split('T')[0];
 }
 
 export function useStats() {
@@ -42,6 +54,9 @@ export function useStats() {
     // Backfill xp/level for existing users who don't have it
     if (saved.xp === undefined) saved.xp = 0;
     if (saved.level === undefined) saved.level = calcLevel(saved.xp);
+    if (saved.longestStreak === undefined) saved.longestStreak = saved.streakDays ?? 0;
+    if (saved.weeklyXp === undefined) saved.weeklyXp = 0;
+    if (saved.weekStartDate === undefined) saved.weekStartDate = '';
     return saved;
   });
 
@@ -84,15 +99,26 @@ export function useStats() {
         }
       }
 
+      // Track longest streak
+      const newLongest = Math.max(newStreak, prev.longestStreak ?? 0);
+
       const newXp = prev.xp + 5; // +5 XP per message sent
+
+      const weekStart = getWeekStart();
+      const isNewWeek = (prev.weekStartDate ?? '') !== weekStart;
+      const newWeeklyXp = isNewWeek ? 5 : (prev.weeklyXp ?? 0) + 5;
+
       const next: UserStats = {
         ...prev,
         totalMessages: prev.totalMessages + 1,
         dailyMessageCount: isNewDay ? 1 : prev.dailyMessageCount + 1,
         lastActiveDate: today,
         streakDays: newStreak,
+        longestStreak: newLongest,
         xp: newXp,
         level: calcLevel(newXp),
+        weeklyXp: newWeeklyXp,
+        weekStartDate: weekStart,
       };
       setItem('user_stats', next);
       return next;
@@ -103,6 +129,11 @@ export function useStats() {
     setStatsState(prev => {
       const xpGain = hadCorrection ? 3 : 10; // +10 correct, +3 with correction
       const newXp = prev.xp + xpGain;
+
+      const weekStart = getWeekStart();
+      const isNewWeek = (prev.weekStartDate ?? '') !== weekStart;
+      const newWeeklyXp = isNewWeek ? xpGain : (prev.weeklyXp ?? 0) + xpGain;
+
       const next: UserStats = {
         ...prev,
         totalWords: prev.totalWords + wordCount,
@@ -110,6 +141,8 @@ export function useStats() {
         correctMessages: prev.correctMessages + (hadCorrection ? 0 : 1),
         xp: newXp,
         level: calcLevel(newXp),
+        weeklyXp: newWeeklyXp,
+        weekStartDate: weekStart,
       };
       setItem('user_stats', next);
       return next;

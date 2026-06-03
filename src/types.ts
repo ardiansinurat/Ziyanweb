@@ -41,6 +41,9 @@ export interface UserStats {
   dailyMessageCount: number;
   xp: number;    // Experience points
   level: number; // Learning level (1–10)
+  longestStreak?: number;
+  weeklyXp?: number;
+  weekStartDate?: string;
 }
 
 export interface UserProfile {
