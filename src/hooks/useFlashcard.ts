@@ -9,7 +9,7 @@ import { getItem, setItem } from '../utils/storage';
 import { HSK_WORDS_BY_LEVEL, HSK_WORDS } from '../data/hsk-words';
 
 export type FlashcardMode = 'study' | 'quiz';
-export type FlashcardFilter = 'all' | '1' | '2' | '3' | 'saved';
+export type FlashcardFilter = 'all' | '1' | '2' | '3' | 'saved' | 'review';
 
 export interface FlashcardState {
   currentIndex: number;
@@ -64,6 +64,18 @@ export function useFlashcard(
 
   const savedCards = useMemo(() => vocabWords.map(vocabToHSK), [vocabWords]);
 
+  // ── SRS helpers ───────────────────────────────────────────────
+
+  function getTodayStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // ── SRS state ─────────────────────────────────────────────────
+
+  const [srsData, setSrsData] = useState<Record<string, { interval: number; due: string }>>(() =>
+    getItem<Record<string, { interval: number; due: string }>>('srs_data', {}),
+  );
+
   const buildDeck = useCallback(
     (filter: FlashcardFilter): HSKWord[] => {
       switch (filter) {
@@ -71,10 +83,15 @@ export function useFlashcard(
         case '2': return shuffle([...HSK_WORDS_BY_LEVEL[2]]);
         case '3': return shuffle([...HSK_WORDS_BY_LEVEL[3]]);
         case 'saved': return shuffle([...savedCards]);
+        case 'review': {
+          const today = getTodayStr();
+          const dueIds = new Set(Object.entries(srsData).filter(([, v]) => v.due <= today).map(([k]) => k));
+          return shuffle(HSK_WORDS.filter(w => dueIds.has(w.id)));
+        }
         default: return shuffle([...HSK_WORDS]);
       }
     },
-    [savedCards],
+    [savedCards, srsData],
   );
 
   // ── Core state ────────────────────────────────────────────────
@@ -144,12 +161,26 @@ export function useFlashcard(
     const updated = Array.from(new Set([...knownWords, currentCard.id]));
     setKnownWordsState(updated);
     setItem('flashcard_known', updated);
+    // Update SRS data
+    const existing = srsData[currentCard.id];
+    const newInterval = existing ? Math.min(existing.interval * 2, 64) : 2;
+    const due = new Date();
+    due.setDate(due.getDate() + newInterval);
+    const newSrs = { ...srsData, [currentCard.id]: { interval: newInterval, due: due.toISOString().split('T')[0] } };
+    setSrsData(newSrs);
+    setItem('srs_data', newSrs);
     setScore(prev => ({ ...prev, correct: prev.correct + 1 }));
     advance(deck, currentIndex + 1);
-  }, [currentCard, knownWords, deck, currentIndex, advance]);
+  }, [currentCard, knownWords, srsData, deck, currentIndex, advance]);
 
   const markIncorrect = useCallback(() => {
     if (!currentCard) return;
+    // Update SRS data
+    const due = new Date();
+    due.setDate(due.getDate() + 1);
+    const newSrs = { ...srsData, [currentCard.id]: { interval: 1, due: due.toISOString().split('T')[0] } };
+    setSrsData(newSrs);
+    setItem('srs_data', newSrs);
     setScore(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
     // Reshuffle the card back into the remaining unseen portion of the deck
     const remaining = deck.slice(currentIndex + 1);
@@ -160,7 +191,7 @@ export function useFlashcard(
     newRemaining.splice(insertAt, 0, currentCard);
     const newDeck = [...deck.slice(0, currentIndex), ...newRemaining];
     advance(newDeck, currentIndex);
-  }, [currentCard, deck, currentIndex, advance]);
+  }, [currentCard, srsData, deck, currentIndex, advance]);
 
   const resetDeck = useCallback(() => {
     const newDeck = buildDeck(filter);
@@ -214,6 +245,15 @@ export function useFlashcard(
     deck,
   };
 
+  // Count of HSK_WORDS with a due SRS entry (for the Review badge)
+  const reviewCount = useMemo(() => {
+    const today = getTodayStr();
+    return HSK_WORDS.filter(w => {
+      const entry = srsData[w.id];
+      return entry !== undefined && entry.due <= today;
+    }).length;
+  }, [srsData]);
+
   return {
     state,
     deck,
@@ -229,5 +269,7 @@ export function useFlashcard(
     knownWords,
     setFilter,
     setMode,
+    srsData,
+    reviewCount,
   };
 }

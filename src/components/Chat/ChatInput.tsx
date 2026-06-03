@@ -2,19 +2,13 @@
 // ChatInput — Message input area with mic and send buttons
 // ============================================================
 
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Send, Mic, MicOff } from 'lucide-react';
 
 interface Props {
   onSend: (text: string) => void;
   isLoading: boolean;
 }
-
-// Web Speech API types
-const SpeechRecognition =
-  typeof window !== 'undefined'
-    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    : null;
 
 export function ChatInput({ onSend, isLoading }: Props) {
   const [input, setInput] = useState('');
@@ -23,6 +17,10 @@ export function ChatInput({ onSend, isLoading }: Props) {
   const recognitionRef = useRef<any>(null);
   const dotTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isSupported =
+    typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   // Auto-resize textarea as content grows/shrinks
   useLayoutEffect(() => {
@@ -54,41 +52,35 @@ export function ChatInput({ onSend, isLoading }: Props) {
     };
   }, [isRecording]);
 
-  const handleMic = () => {
-    if (!SpeechRecognition) {
-      alert('Browser Anda tidak mendukung pengenalan suara.');
+  const toggleMic = useCallback(() => {
+    if (!isSupported) return;
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
       return;
     }
 
-    if (isRecording && recognitionRef.current) {
-      recognitionRef.current.stop();
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
+    const SpeechRecognitionCls =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionCls();
+    recognition.lang = 'zh-CN'; // Mandarin Chinese (primary)
+    recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setIsRecording(true);
-
-    recognition.onresult = (event: any) => {
-      const transcript: string = event.results[0][0].transcript;
-      setInput(prev => (prev ? prev + transcript : transcript));
-    };
-
-    recognition.onerror = () => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(prev => (prev ? prev + ' ' + transcript : transcript));
       setIsRecording(false);
     };
 
-    recognition.onend = () => {
-      setIsRecording(false);
-      recognitionRef.current = null;
-    };
+    recognition.onerror = () => setIsRecording(false);
+    recognition.onend = () => setIsRecording(false);
 
-    recognitionRef.current = recognition;
     recognition.start();
-  };
+    recognitionRef.current = recognition;
+    setIsRecording(true);
+  }, [isRecording, isSupported]);
 
   const doSend = () => {
     if (!input.trim() || isLoading) return;
@@ -134,16 +126,6 @@ export function ChatInput({ onSend, isLoading }: Props) {
         </div>
       )}
       <form onSubmit={handleSubmit} className="input-wrapper" style={{ position: 'relative', alignItems: 'flex-end' }}>
-        <button
-          type="button"
-          className={`btn-icon ${isRecording ? 'recording' : ''}`}
-          onClick={handleMic}
-          disabled={isLoading}
-          title={isRecording ? 'Berhenti merekam' : 'Rekam Suara (Mandarin)'}
-          style={isRecording ? { color: 'var(--primary)', animation: 'pulse 0.8s ease-in-out infinite' } : {}}
-        >
-          {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-        </button>
         <textarea
           ref={textareaRef}
           className={`chat-input chat-textarea${isLoading ? ' chat-input-loading' : ''}`}
@@ -172,6 +154,17 @@ export function ChatInput({ onSend, isLoading }: Props) {
           }}>
             {charCount}
           </span>
+        )}
+        {isSupported && (
+          <button
+            type="button"
+            className={`chat-mic-btn${isRecording ? ' recording' : ''}`}
+            onClick={toggleMic}
+            title={isRecording ? 'Hentikan rekaman' : 'Bicara dalam bahasa Mandarin'}
+            disabled={isLoading}
+          >
+            {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+          </button>
         )}
         <button
           type="submit"

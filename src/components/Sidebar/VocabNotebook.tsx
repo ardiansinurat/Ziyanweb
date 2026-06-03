@@ -5,7 +5,6 @@
 import { useState, useMemo } from 'react';
 import { BookmarkX, Volume2, Search, Download, BookOpen, Plus } from 'lucide-react';
 import type { VocabWord } from '../../types';
-import { useToast } from '../UI/Toast';
 
 interface Props {
   words: VocabWord[];
@@ -40,7 +39,6 @@ function playWord(hanzi: string) {
 }
 
 export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWord }: Props) {
-  const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
@@ -81,12 +79,22 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
   }, [words, search, sort, sourceFilter]);
 
   const handleExport = () => {
-    const text = words
-      .map(w => `${w.hanzi} [${w.pinyin}] — ${w.meaning}${(w as any).example ? `\nContoh: ${(w as any).example}` : ''}`)
-      .join('\n\n');
-    navigator.clipboard.writeText(text).then(() => {
-      showToast(`${words.length} kata disalin ke clipboard!`, 'success');
+    if (words.length === 0) return;
+    const header = 'Hanzi,Pinyin,Arti,Tanggal Disimpan';
+    const rows = words.map(w => {
+      const date = new Date(w.savedAt).toLocaleDateString('id-ID');
+      // Escape commas/quotes in fields
+      const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+      return [esc(w.hanzi), esc(w.pinyin), esc(w.meaning), date].join(',');
     });
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ziyan-vocab-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (words.length === 0) {
@@ -111,7 +119,18 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
     <div className="vocab-notebook">
       <div className="vocab-header">
         <h3>📖 Kosakata Saya</h3>
-        <span className="vocab-count">{words.length} kata tersimpan</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="vocab-count">{words.length} kata tersimpan</span>
+          {words.length > 0 && (
+            <button
+              className="vocab-export-btn"
+              onClick={handleExport}
+              title="Export CSV"
+            >
+              <Download size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
@@ -233,11 +252,6 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
         )}
       </div>
 
-      {/* Export button */}
-      <button className="vocab-export-btn" onClick={handleExport} title="Salin semua kata ke clipboard">
-        <Download size={14} />
-        <span>Ekspor Kosakata</span>
-      </button>
     </div>
   );
 }
