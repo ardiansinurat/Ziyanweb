@@ -2,7 +2,9 @@
 // ProgressDashboard — Visual learning progress tracker
 // ============================================================
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
+import { useToast } from '../UI/Toast';
+import { getItem, setItem } from '../../utils/storage';
 import {
   MessageSquare,
   Flame,
@@ -304,6 +306,8 @@ export default function ProgressDashboard({
   accuracy,
   words,
 }: ProgressDashboardProps) {
+  const { showToast } = useToast();
+
   const { getLast7Days, getLast30Days } = useActivityHistory();
 
   const last7 = getLast7Days();
@@ -351,6 +355,21 @@ export default function ProgressDashboard({
       ),
     [stats, accuracy, words.length]
   );
+
+  // Toast notifications for newly unlocked achievements
+  useEffect(() => {
+    const prevIds = new Set(getItem<string[]>('unlocked_achievements', []));
+    const newlyUnlocked = ACHIEVEMENTS.filter(a => unlockedIds.has(a.id) && !prevIds.has(a.id));
+    if (newlyUnlocked.length > 0) {
+      newlyUnlocked.forEach(a => {
+        showToast(`${a.icon} Pencapaian Baru: ${a.name}! ${a.description}`, 'success');
+      });
+      setItem('unlocked_achievements', Array.from(unlockedIds));
+    } else if (unlockedIds.size > 0) {
+      // Sync storage with current state without toasting
+      setItem('unlocked_achievements', Array.from(unlockedIds));
+    }
+  }, [unlockedIds, showToast]);
 
   // Recent vocabulary (last 5 saved)
   const recentWords = useMemo(
