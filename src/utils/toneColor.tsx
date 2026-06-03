@@ -12,6 +12,14 @@ const TONE_MAP: Record<string, number> = {
   'ǖ': 1, 'ǘ': 2, 'ǚ': 3, 'ǜ': 4,
 };
 
+const TONE_DESCRIPTIONS: Record<number, string> = {
+  1: 'Nada 1 (datar: ā)',
+  2: 'Nada 2 (naik: á)',
+  3: 'Nada 3 (turun-naik: ǎ)',
+  4: 'Nada 4 (turun: à)',
+  0: 'Nada netral',
+};
+
 function getTone(syllable: string): number {
   for (const char of syllable) {
     if (TONE_MAP[char]) return TONE_MAP[char];
@@ -19,19 +27,35 @@ function getTone(syllable: string): number {
   return 0; // neutral / no tone
 }
 
-export function ColorizePinyin({ pinyin }: { pinyin: string }) {
-  const syllables = pinyin.trim().split(/\s+/);
+export function getToneNumber(syllable: string): number {
+  return getTone(syllable);
+}
+
+export function ColorizePinyin({ pinyin, className }: { pinyin: string; className?: string }) {
+  const trimmed = pinyin.trim();
+  if (!trimmed) return null;
+
+  const syllables = trimmed.split(/\s+/);
+  const ariaLabel = `Pinyin: ${trimmed}`;
+
   return (
-    <>
+    <span aria-label={ariaLabel} className={className}>
       {syllables.map((syl, i) => {
         const tone = getTone(syl);
         const style = tone > 0
           ? { color: `var(--tone-${tone})` }
           : { color: 'var(--text-muted)' };
         return (
-          <span key={i} className="pinyin-syllable" style={style}>{syl}</span>
+          <span
+            key={i}
+            className="pinyin-syllable"
+            style={style}
+            title={TONE_DESCRIPTIONS[tone]}
+          >
+            {syl}
+          </span>
         );
       })}
-    </>
+    </span>
   );
 }
