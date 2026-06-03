@@ -20,6 +20,8 @@ interface Props {
 
 type Reaction = 'up' | 'down' | null;
 
+const EMOJI_REACTIONS = ['👍', '💡', '⭐'] as const;
+
 function formatTime(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
@@ -52,6 +54,22 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
     if (!isAi || !message.id) return null;
     return getStoredReactions()[message.id] ?? null;
   });
+
+  const [reactions, setReactions] = useState<Record<string, string[]>>(() =>
+    getItem<Record<string, string[]>>('msg_reactions', {})
+  );
+
+  const toggleReaction = (msgId: string, emoji: string) => {
+    setReactions(prev => {
+      const existing = prev[msgId] ?? [];
+      const next = existing.includes(emoji)
+        ? existing.filter(e => e !== emoji)
+        : [...existing, emoji];
+      const updated = { ...prev, [msgId]: next };
+      setItem('msg_reactions', updated);
+      return updated;
+    });
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.text).then(() => {
@@ -179,6 +197,22 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
           <span className="message-time">{formatTime(message.timestamp)}</span>
         )}
       </div>
+
+      {/* Emoji reaction bar — AI messages only */}
+      {isAi && (
+        <div className="message-reactions">
+          {EMOJI_REACTIONS.map(emoji => (
+            <button
+              key={emoji}
+              className={`reaction-btn${(reactions[message.id] ?? []).includes(emoji) ? ' active' : ''}`}
+              onClick={() => toggleReaction(message.id, emoji)}
+              title={emoji === '👍' ? 'Berguna' : emoji === '💡' ? 'Menarik' : 'Favorit'}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
