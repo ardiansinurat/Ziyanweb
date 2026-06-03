@@ -2,7 +2,7 @@
 // App.tsx — Orchestrator for the Ziyan Learning App
 // ============================================================
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import './index.css';
 
 import type { ThemeId } from './types';
@@ -45,6 +45,19 @@ function App() {
   const { showToast } = useToast();
   const { updateToday } = useActivityHistory();
   const { messages, isLoading, messagesEndRef, sendMessage, clearChat, playAudio } = useChat(hskLevel);
+
+  // Level-up detection
+  const prevLevelRef = useRef<number>(stats.level);
+
+  useEffect(() => {
+    if (stats.level > prevLevelRef.current) {
+      showToast(
+        `🎉 Level Up! Kamu sekarang Level ${stats.level}! Terus semangat belajar!`,
+        'success'
+      );
+    }
+    prevLevelRef.current = stats.level;
+  }, [stats.level, showToast]);
 
   // Persist profile
   useEffect(() => {
@@ -181,7 +194,12 @@ function App() {
             {/* Lessons tab */}
             {activeTab === 'lessons' && (
               <div className="tab-panel glass-panel">
-                <LessonsView hskLevel={hskLevel} onSendToChat={handleSendToChat} />
+                <LessonsView
+                  hskLevel={hskLevel}
+                  onSendToChat={handleSendToChat}
+                  isWordSaved={isWordSaved}
+                  onSaveWord={(word) => { addWord(word); showToast('Kata disimpan!', 'success'); }}
+                />
               </div>
             )}
 

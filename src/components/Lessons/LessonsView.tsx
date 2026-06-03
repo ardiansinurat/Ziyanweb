@@ -10,6 +10,9 @@ import {
   Check,
   ChevronLeft,
   MessageCircle,
+  Volume2,
+  BookmarkPlus,
+  BookmarkCheck,
 } from 'lucide-react';
 
 import {
@@ -19,12 +22,25 @@ import {
 } from '../../data/lessons';
 import { getItem, setItem } from '../../utils/storage';
 import { ColorizePinyin } from '../../utils/toneColor';
+import type { VocabWord } from '../../types';
 import './lessons.css';
 
 // ── Props ─────────────────────────────────────────────────────
 interface LessonsViewProps {
   hskLevel: number;
   onSendToChat: (text: string) => void;
+  isWordSaved?: (hanzi: string) => boolean;
+  onSaveWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
+}
+
+// ── Audio helper ──────────────────────────────────────────────
+function playWord(hanzi: string) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(hanzi);
+  u.lang = 'zh-CN';
+  u.rate = 0.9;
+  window.speechSynthesis.speak(u);
 }
 
 // ── Types for local state ─────────────────────────────────────
@@ -186,7 +202,13 @@ function LessonBrowser({
 }
 
 // ── Sub-component: Vocab Tab ──────────────────────────────────
-function VocabTab({ lesson }: { lesson: Lesson }) {
+interface VocabTabProps {
+  lesson: Lesson;
+  isWordSaved?: (hanzi: string) => boolean;
+  onSaveWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
+}
+
+function VocabTab({ lesson, isWordSaved, onSaveWord }: VocabTabProps) {
   return (
     <table className="vocab-table">
       <thead>
@@ -194,6 +216,7 @@ function VocabTab({ lesson }: { lesson: Lesson }) {
           <th>Hanzi</th>
           <th>Arti (Indonesia)</th>
           <th>Kelas Kata</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -210,6 +233,31 @@ function VocabTab({ lesson }: { lesson: Lesson }) {
               <span className={`pos-badge ${posCssClass(v.partOfSpeech)}`}>
                 {v.partOfSpeech}
               </span>
+            </td>
+            <td>
+              <div className="vocab-actions">
+                <button
+                  className="vocab-action-btn"
+                  onClick={() => playWord(v.hanzi)}
+                  aria-label={`Putar audio untuk ${v.hanzi}`}
+                  title="Putar audio"
+                >
+                  <Volume2 size={14} />
+                </button>
+                <button
+                  className={`vocab-action-btn${isWordSaved?.(v.hanzi) ? ' saved' : ''}`}
+                  onClick={() => onSaveWord?.({
+                    hanzi: v.hanzi,
+                    pinyin: v.pinyin,
+                    meaning: v.meaning,
+                    source: 'manual',
+                  })}
+                  aria-label={isWordSaved?.(v.hanzi) ? `${v.hanzi} sudah disimpan` : `Simpan ${v.hanzi} ke catatan`}
+                  title={isWordSaved?.(v.hanzi) ? 'Sudah disimpan' : 'Simpan ke catatan'}
+                >
+                  {isWordSaved?.(v.hanzi) ? <BookmarkCheck size={14} /> : <BookmarkPlus size={14} />}
+                </button>
+              </div>
             </td>
           </tr>
         ))}
@@ -334,6 +382,8 @@ interface DetailProps {
   onBack: () => void;
   onMarkComplete: (id: string) => void;
   onStartPractice: (prompt: string) => void;
+  isWordSaved?: (hanzi: string) => boolean;
+  onSaveWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
 }
 
 function LessonDetail({
@@ -342,6 +392,8 @@ function LessonDetail({
   onBack,
   onMarkComplete,
   onStartPractice,
+  isWordSaved,
+  onSaveWord,
 }: DetailProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('vocab');
 
@@ -401,7 +453,13 @@ function LessonDetail({
 
       {/* Tab Content */}
       <div className="lesson-tab-content" role="tabpanel">
-        {activeTab === 'vocab' && <VocabTab lesson={lesson} />}
+        {activeTab === 'vocab' && (
+          <VocabTab
+            lesson={lesson}
+            isWordSaved={isWordSaved}
+            onSaveWord={onSaveWord}
+          />
+        )}
         {activeTab === 'dialog' && <DialogTab lesson={lesson} />}
         {activeTab === 'grammar' && <GrammarTab lesson={lesson} />}
         {activeTab === 'practice' && (
@@ -438,7 +496,7 @@ function LessonDetail({
 }
 
 // ── Main Component ────────────────────────────────────────────
-export function LessonsView({ onSendToChat }: LessonsViewProps) {
+export function LessonsView({ onSendToChat, isWordSaved, onSaveWord }: LessonsViewProps) {
   // Persistence: track completed lesson IDs
   const [completedIds, setCompletedIds] = useState<Set<string>>(
     () => new Set(getItem<string[]>('completed_lessons', [])),
@@ -470,6 +528,8 @@ export function LessonsView({ onSendToChat }: LessonsViewProps) {
           onBack={() => setSelectedLesson(null)}
           onMarkComplete={handleMarkComplete}
           onStartPractice={handleStartPractice}
+          isWordSaved={isWordSaved}
+          onSaveWord={onSaveWord}
         />
       ) : (
         <LessonBrowser

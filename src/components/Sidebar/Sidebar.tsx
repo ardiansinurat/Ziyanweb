@@ -6,7 +6,6 @@ import type { VocabWord } from '../../types';
 import { ProfileCard } from './ProfileCard';
 import { StatsGrid } from './StatsGrid';
 import { VocabNotebook } from './VocabNotebook';
-import { DailyReminder } from './DailyReminder';
 import { DailyWordCard } from './DailyWordCard';
 
 interface WordObj {
@@ -32,8 +31,8 @@ interface Props {
   onOpenSettings: () => void;
   onRemoveWord: (id: string) => void;
   onAddWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
-  onStartPractice: () => void;
   onSaveDailyWord?: (word: WordObj) => void;
+  onStartPractice?: () => void;
   playAudio: (text: string) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -80,7 +79,6 @@ export function Sidebar({
   onOpenSettings,
   onRemoveWord,
   onAddWord,
-  onStartPractice,
   onSaveDailyWord,
   playAudio,
   isOpen,
@@ -111,11 +109,6 @@ export function Sidebar({
         <DailyGoalBar count={dailyCount} goal={dailyGoal ?? 10} />
 
         <DailyWordCard playAudio={playAudio} onSaveWord={onSaveDailyWord} />
-
-        <DailyReminder
-          dailyCount={dailyCount}
-          onStartPractice={onStartPractice}
-        />
 
         <VocabNotebook
           words={vocabWords}

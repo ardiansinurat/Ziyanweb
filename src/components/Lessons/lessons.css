@@ -953,6 +953,12 @@
   height: 12px;
 }
 
+/* ── Vocab Action Buttons ────────────────────────────────── */
+.vocab-action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 3px 5px; border-radius: 4px; transition: color 0.2s, background 0.2s; }
+.vocab-action-btn:hover { color: var(--primary); background: var(--glass-bg); }
+.vocab-action-btn.saved { color: var(--primary); }
+.vocab-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
+
 /* ── Scrollbar inside lesson content ─────────────────────── */
 .lesson-tab-content::-webkit-scrollbar {
   width: 4px;
