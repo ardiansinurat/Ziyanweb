@@ -30,6 +30,7 @@ interface Props {
   vocabWords: VocabWord[];
   onOpenSettings: () => void;
   onRemoveWord: (id: string) => void;
+  onAddWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
   onStartPractice: () => void;
   onSaveDailyWord?: (word: WordObj) => void;
   playAudio: (text: string) => void;
@@ -51,6 +52,7 @@ export function Sidebar({
   vocabWords,
   onOpenSettings,
   onRemoveWord,
+  onAddWord,
   onStartPractice,
   onSaveDailyWord,
   playAudio,
@@ -90,6 +92,7 @@ export function Sidebar({
           words={vocabWords}
           onRemove={onRemoveWord}
           playAudio={playAudio}
+          onAddWord={onAddWord}
         />
       </div>
     </>

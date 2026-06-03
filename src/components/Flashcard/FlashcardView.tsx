@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Volume2 } from 'lucide
 import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
-import { ColorizePinyin } from '../../utils/toneColor';
 import './flashcard.css';
 
 interface FlashcardViewProps {
@@ -71,7 +70,7 @@ function StudyCard({ hanzi, pinyin, meaning, example, isFlipped, onFlip, onPlayA
           <div className="flashcard-hanzi" style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
             {hanzi}
           </div>
-          <div className="flashcard-pinyin"><ColorizePinyin pinyin={pinyin} /></div>
+          <div className="flashcard-pinyin">{pinyin}</div>
           <div className="flashcard-divider" />
           <div className="flashcard-meaning">{meaning}</div>
           {example ? (
@@ -183,6 +182,26 @@ export default function FlashcardView({
 
   // Quiz: track selected answer id (null = unanswered)
   const [answeredId, setAnsweredId] = useState<string | null>(null);
+
+  // Auto-play hanzi when card is flipped to back
+  useEffect(() => {
+    if (state.isFlipped && currentCard && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(currentCard.hanzi);
+      u.lang = 'zh-CN';
+      u.rate = 0.85;
+      window.speechSynthesis.speak(u);
+    }
+  }, [state.isFlipped, currentCard?.hanzi]);
+
+  const playCurrentCard = useCallback(() => {
+    if (!currentCard || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(currentCard.hanzi);
+    u.lang = 'zh-CN';
+    u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }, [currentCard]);
 
   // Reset answeredId whenever card changes
   useEffect(() => {
@@ -329,6 +348,7 @@ export default function FlashcardView({
                 example={currentCard.example}
                 isFlipped={state.isFlipped}
                 onFlip={flipCard}
+                onPlayAudio={playCurrentCard}
               />
               {/* Controls */}
               <div className="flashcard-controls">

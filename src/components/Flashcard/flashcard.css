@@ -516,6 +516,10 @@
   font-size: 0.95rem;
 }
 
+/* ── Audio button on flashcard back ──────────────────────── */
+.flashcard-audio-btn { position: absolute; top: 12px; right: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); transition: all 0.2s; }
+.flashcard-audio-btn:hover { background: var(--primary); color: #fff; }
+
 /* ── Score chips ──────────────────────────────────────────── */
 .score-chips {
   display: flex;
