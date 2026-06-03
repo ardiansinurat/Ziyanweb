@@ -31,6 +31,7 @@ function App() {
   const [userName, setUserName] = useState(() => getItem<string>('profile_name', 'Pelajar'));
   const [userAvatar, setUserAvatar] = useState(() => getItem<string>('profile_avatar', ''));
   const [hskLevel, setHskLevel] = useState(() => getItem<number>('profile_hsk', 1));
+  const [dailyGoal, setDailyGoal] = useState(() => getItem<number>('daily_goal', 10));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !getItem<boolean>('onboarded', false));
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -51,6 +52,9 @@ function App() {
     setItem('profile_avatar', userAvatar);
     setItem('profile_hsk', hskLevel);
   }, [userName, userAvatar, hskLevel]);
+
+  // Persist daily goal
+  useEffect(() => { setItem('daily_goal', dailyGoal); }, [dailyGoal]);
 
   // Persist active tab
   useEffect(() => {
@@ -86,11 +90,12 @@ function App() {
     showToast('Kata disimpan ke kosakata!', 'success');
   }, [messages, addWord, showToast]);
 
-  const handleSettingsSave = useCallback((data: { name: string; avatar: string; theme: ThemeId; hskLevel: number }) => {
+  const handleSettingsSave = useCallback((data: { name: string; avatar: string; theme: ThemeId; hskLevel: number; dailyGoal: number }) => {
     setUserName(data.name);
     setUserAvatar(data.avatar);
     setTheme(data.theme);
     setHskLevel(data.hskLevel);
+    setDailyGoal(data.dailyGoal);
     showToast('Pengaturan disimpan!', 'success');
   }, [setTheme, showToast]);
 
@@ -138,6 +143,7 @@ function App() {
           totalWords={totalWords}
           totalMessages={stats.totalMessages}
           dailyCount={stats.dailyMessageCount}
+          dailyGoal={dailyGoal}
           xp={stats.xp}
           level={stats.level}
           vocabWords={words}
@@ -211,6 +217,7 @@ function App() {
         userAvatar={userAvatar}
         theme={theme}
         hskLevel={hskLevel}
+        dailyGoal={dailyGoal}
         onSave={handleSettingsSave}
         onResetStats={() => { resetStats(); showToast('Statistik direset', 'info'); }}
         onResetChat={handleClearChat}
