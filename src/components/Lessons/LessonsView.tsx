@@ -427,6 +427,116 @@ function GrammarTab({ lesson, onShowCharacter }: { lesson: Lesson; onShowCharact
   );
 }
 
+// ── Sub-component: MiniQuiz ──────────────────────────────────
+interface MiniQuizProps {
+  vocab: Lesson['vocab'];
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function MiniQuiz({ vocab }: MiniQuizProps) {
+  const [qIndex, setQIndex] = useState(0);
+  const [answered, setAnswered] = useState<string | null>(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const [shuffledVocab] = useState(() => shuffleArray([...vocab]));
+
+  const currentWord = shuffledVocab[qIndex];
+
+  const options = useMemo(() => {
+    if (!currentWord) return [];
+    const distractors = vocab
+      .filter(v => v.hanzi !== currentWord.hanzi)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map(v => v.meaning);
+    return shuffleArray([currentWord.meaning, ...distractors]);
+  }, [currentWord, vocab]);
+
+  const handleAnswer = (meaning: string) => {
+    if (answered !== null) return;
+    setAnswered(meaning);
+    if (meaning === currentWord.meaning) {
+      setCorrect(prev => prev + 1);
+    }
+    setTimeout(() => {
+      if (qIndex + 1 >= shuffledVocab.length) {
+        setDone(true);
+      } else {
+        setQIndex(prev => prev + 1);
+        setAnswered(null);
+      }
+    }, 800);
+  };
+
+  const handleReset = () => {
+    setQIndex(0);
+    setAnswered(null);
+    setCorrect(0);
+    setDone(false);
+  };
+
+  if (vocab.length < 2) return null;
+
+  if (done) {
+    const pct = Math.round((correct / shuffledVocab.length) * 100);
+    return (
+      <div className="lesson-mini-quiz">
+        <div className="lesson-mini-quiz-title">
+          {pct >= 80 ? '🎉 Luar biasa!' : pct >= 60 ? '👍 Cukup bagus!' : '💪 Terus berlatih!'}
+        </div>
+        <div style={{ textAlign: 'center', padding: '0.5rem', fontSize: '1.5rem', fontWeight: 700 }}>
+          {pct}%
+        </div>
+        <div className="lesson-quiz-score">{correct}/{shuffledVocab.length} benar</div>
+        <button
+          className="btn-secondary"
+          style={{ width: '100%', marginTop: '8px', padding: '6px' }}
+          onClick={handleReset}
+        >
+          Ulangi Quiz
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lesson-mini-quiz">
+      <div className="lesson-mini-quiz-title">
+        🧠 Mini Quiz — {qIndex + 1}/{shuffledVocab.length}
+      </div>
+      <div className="lesson-mini-quiz-hanzi">{currentWord?.hanzi}</div>
+      <div className="lesson-quiz-options">
+        {options.map((meaning, i) => {
+          let cls = 'lesson-quiz-opt';
+          if (answered !== null) {
+            if (meaning === currentWord.meaning) cls += ' correct';
+            else if (meaning === answered) cls += ' wrong';
+          }
+          return (
+            <button
+              key={i}
+              className={cls}
+              disabled={answered !== null}
+              onClick={() => handleAnswer(meaning)}
+            >
+              {meaning}
+            </button>
+          );
+        })}
+      </div>
+      <div className="lesson-quiz-score">{correct} benar sejauh ini</div>
+    </div>
+  );
+}
+
 // ── Sub-component: Practice Tab ───────────────────────────────
 interface PracticeTabProps {
   lesson: Lesson;
@@ -437,6 +547,7 @@ interface PracticeTabProps {
 function PracticeTab({ lesson, isCompleted, onStartPractice }: PracticeTabProps) {
   return (
     <div className="practice-section">
+      <MiniQuiz vocab={lesson.vocab} />
       <div className="practice-intro">
         <span className="practice-intro-emoji" aria-hidden="true">🤖</span>
         <h4>Latihan dengan Ziyan AI</h4>
