@@ -2,8 +2,8 @@
 // ChatPanel — Main chat area orchestrator
 // ============================================================
 
-import { useState, useCallback, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import type { Message } from '../../types';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
@@ -80,6 +80,8 @@ export function ChatPanel({
   const [showTranslations, setShowTranslations] = useState(true);
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const hasMessages = messages.length > 1; // More than just greeting
   const lastAiMsg = [...messages].reverse().find(m => m.sender === 'ai');
@@ -91,6 +93,21 @@ export function ChatPanel({
         msg.translation?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : messages;
+
+  useEffect(() => {
+    const el = chatMessagesRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollBtn(distanceFromBottom > 200);
+    };
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleScrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messagesEndRef]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,7 +173,7 @@ export function ChatPanel({
         </div>
       )}
 
-      <div className="chat-messages">
+      <div className="chat-messages" ref={chatMessagesRef} style={{ position: 'relative' }}>
         {!hasMessages && (
           <div className="empty-state">
             <div className="empty-state-emoji">🐉</div>
@@ -202,6 +219,16 @@ export function ChatPanel({
 
         {isLoading && <TypingIndicator />}
         <div ref={messagesEndRef} />
+        {showScrollBtn && (
+          <button
+            className="scroll-to-bottom-btn"
+            onClick={handleScrollToBottom}
+            title="Gulir ke bawah"
+            aria-label="Gulir ke bawah"
+          >
+            <ChevronDown size={18} />
+          </button>
+        )}
       </div>
 
       {!hasMessages && (
