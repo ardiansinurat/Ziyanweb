@@ -626,3 +626,30 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 6 — Confetti on perfect completion
+   ═══════════════════════════════════════════════════════════ */
+.confetti-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.confetti-particle {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.completion-screen .glass-panel {
+  position: relative;
+  overflow: hidden;
+}

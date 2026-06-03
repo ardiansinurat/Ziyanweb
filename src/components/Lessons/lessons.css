@@ -972,3 +972,74 @@
   background: var(--glass-border);
   border-radius: 4px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WAVE 6 — Lesson search & dialog audio
+   ═══════════════════════════════════════════════════════════ */
+.lessons-search-wrap {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+.lessons-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.lessons-search-input:focus {
+  border-color: var(--primary);
+}
+.lessons-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.lessons-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+.lessons-no-results {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+}
+.dialogue-line-actions {
+  display: flex;
+  margin-top: 4px;
+}
+.dialogue-play-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+}
+.dialogue-play-btn:hover {
+  color: var(--primary);
+  background: var(--glass-bg);
+}

@@ -43,7 +43,7 @@ function formatTime(timestamp: number): string {
 }
 
 function getStoredReactions(): Record<string, Reaction> {
-  return getItem<Record<string, Reaction>>('msg_reactions', {});
+  return getItem<Record<string, Reaction>>('msg_thumbs', {});
 }
 
 export function MessageBubble({ message, showTranslation, playAudio, isWordSaved, onSaveWord, onShowCharacter }: Props) {
@@ -93,7 +93,7 @@ export function MessageBubble({ message, showTranslation, playAudio, isWordSaved
     } else {
       stored[message.id] = next;
     }
-    setItem('msg_reactions', stored);
+    setItem('msg_thumbs', stored);
   };
 
   return (
