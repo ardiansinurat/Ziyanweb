@@ -2,16 +2,17 @@
 // ChatHeader — Top bar of the chat panel
 // ============================================================
 
-import { Eye, EyeOff, Trash2, Menu } from 'lucide-react';
+import { Eye, EyeOff, Trash2, Menu, Download } from 'lucide-react';
 
 interface Props {
   showTranslations: boolean;
   onToggleTranslations: () => void;
   onClearChat: () => void;
   onToggleSidebar?: () => void;
+  onExportChat?: () => void;
 }
 
-export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat, onToggleSidebar }: Props) {
+export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat, onToggleSidebar, onExportChat }: Props) {
   return (
     <div className="chat-header">
       <div className="tutor-info">
@@ -37,6 +38,15 @@ export function ChatHeader({ showTranslations, onToggleTranslations, onClearChat
         >
           {showTranslations ? <Eye size={20} /> : <EyeOff size={20} />}
         </button>
+        {onExportChat && (
+          <button
+            className="btn-icon"
+            onClick={onExportChat}
+            title="Ekspor Percakapan"
+          >
+            <Download size={20} />
+          </button>
+        )}
         <button
           className="btn-icon"
           onClick={onClearChat}

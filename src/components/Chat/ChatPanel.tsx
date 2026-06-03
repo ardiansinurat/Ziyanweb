@@ -2,7 +2,7 @@
 // ChatPanel — Main chat area orchestrator
 // ============================================================
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Message } from '../../types';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
@@ -39,6 +39,26 @@ export function ChatPanel({
 
   const hasMessages = messages.length > 1; // More than just greeting
 
+  const handleExport = useCallback(() => {
+    const lines = messages.map(m => {
+      const who = m.sender === 'ai' ? 'Ziyan' : 'Kamu';
+      const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+      let out = `[${time}] ${who}: ${m.text}`;
+      if (m.pinyin) out += `\n  Pinyin: ${m.pinyin}`;
+      if (m.translation) out += `\n  Terjemahan: ${m.translation}`;
+      if (m.correction) out += `\n  Koreksi: ${m.correction}`;
+      return out;
+    });
+    const content = `Percakapan dengan Ziyan\n${'='.repeat(40)}\n${new Date().toLocaleString('id-ID')}\n${'='.repeat(40)}\n\n${lines.join('\n\n')}`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ziyan-chat-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [messages]);
+
   return (
     <div className="chat-section glass-panel">
       <ChatHeader
@@ -46,6 +66,7 @@ export function ChatPanel({
         onToggleTranslations={() => setShowTranslations(!showTranslations)}
         onClearChat={onClearChat}
         onToggleSidebar={onToggleSidebar}
+        onExportChat={hasMessages ? handleExport : undefined}
       />
 
       <div className="chat-messages">
