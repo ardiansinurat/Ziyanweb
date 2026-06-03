@@ -15,9 +15,11 @@ interface Props {
   theme: ThemeId;
   hskLevel: number;
   onSave: (data: { name: string; avatar: string; theme: ThemeId; hskLevel: number }) => void;
+  onResetStats?: () => void;
+  onResetChat?: () => void;
 }
 
-export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hskLevel, onSave }: Props) {
+export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hskLevel, onSave, onResetStats, onResetChat }: Props) {
   const [tempName, setTempName] = useState(userName);
   const [tempAvatar, setTempAvatar] = useState(userAvatar);
   const [tempTheme, setTempTheme] = useState<ThemeId>(theme);
@@ -164,6 +166,30 @@ export function SettingsModal({ isOpen, onClose, userName, userAvatar, theme, hs
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        </div>
+
+        <div className="form-group danger-zone">
+          <label style={{ color: 'var(--warning)' }}>⚠️ Zona Bahaya</label>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {onResetStats && (
+              <button
+                className="btn-danger-sm"
+                onClick={() => { if (confirm('Reset semua statistik belajar? Ini tidak bisa dibatalkan.')) { onResetStats(); onClose(); } }}
+                type="button"
+              >
+                Reset Statistik
+              </button>
+            )}
+            {onResetChat && (
+              <button
+                className="btn-danger-sm"
+                onClick={() => { if (confirm('Hapus riwayat percakapan? Ini tidak bisa dibatalkan.')) { onResetChat(); onClose(); } }}
+                type="button"
+              >
+                Hapus Riwayat Chat
+              </button>
             )}
           </div>
         </div>

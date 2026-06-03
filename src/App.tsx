@@ -17,6 +17,7 @@ import { Sidebar } from './components/Sidebar/Sidebar';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { CharacterModal } from './components/Modals/CharacterModal';
+import { OnboardingModal } from './components/Modals/OnboardingModal';
 import { TabNav, type Tab } from './components/Navigation/TabNav';
 import FlashcardView from './components/Flashcard/FlashcardView';
 import ProgressDashboard from './components/Dashboard/ProgressDashboard';
@@ -31,13 +32,14 @@ function App() {
   const [userAvatar, setUserAvatar] = useState(() => getItem<string>('profile_avatar', ''));
   const [hskLevel, setHskLevel] = useState(() => getItem<number>('profile_hsk', 1));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !getItem<boolean>('onboarded', false));
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => getItem<Tab>('active_tab', 'chat'));
 
   // === Hooks ===
   const { theme, setTheme } = useTheme();
-  const { stats, accuracy, recordUserMessage, recordAiResponse } = useStats();
+  const { stats, accuracy, recordUserMessage, recordAiResponse, resetStats } = useStats();
   const { words, addWord, removeWord, isWordSaved, totalWords } = useVocab();
   const { showToast } = useToast();
   const { updateToday } = useActivityHistory();
@@ -96,6 +98,14 @@ function App() {
     clearChat();
     showToast('Percakapan baru dimulai', 'info');
   }, [clearChat, showToast]);
+
+  const handleOnboardingComplete = useCallback((data: { name: string; hskLevel: number; theme: ThemeId }) => {
+    setUserName(data.name);
+    setHskLevel(data.hskLevel);
+    setTheme(data.theme);
+    setItem('onboarded', true);
+    setShowOnboarding(false);
+  }, [setTheme]);
 
   const handleStartPractice = useCallback(() => {
     setActiveTab('chat');
@@ -201,12 +211,16 @@ function App() {
         theme={theme}
         hskLevel={hskLevel}
         onSave={handleSettingsSave}
+        onResetStats={() => { resetStats(); showToast('Statistik direset', 'info'); }}
+        onResetChat={handleClearChat}
       />
 
       <CharacterModal
         character={selectedChar}
         onClose={() => setSelectedChar(null)}
       />
+
+      <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
     </>
   );
 }
