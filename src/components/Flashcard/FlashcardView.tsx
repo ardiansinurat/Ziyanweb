@@ -8,6 +8,7 @@ import HanziWriter from 'hanzi-writer';
 import type { VocabWord } from '../../types';
 import type { FlashcardFilter, FlashcardMode, QuizOption } from '../../hooks/useFlashcard';
 import { useFlashcard } from '../../hooks/useFlashcard';
+import { getItem, setItem } from '../../utils/storage';
 import './flashcard.css';
 
 interface FlashcardViewProps {
@@ -279,25 +280,35 @@ export default function FlashcardView({
   // Study: track writing practice visibility
   const [showPractice, setShowPractice] = useState(false);
 
+  // Playback speed (persisted)
+  const [playSpeed, setPlaySpeed] = useState<0.65 | 0.85 | 1.1>(() =>
+    getItem<0.65 | 0.85 | 1.1>('flashcard_play_speed', 0.85)
+  );
+
+  const handleSpeedChange = useCallback((speed: 0.65 | 0.85 | 1.1) => {
+    setPlaySpeed(speed);
+    setItem('flashcard_play_speed', speed);
+  }, []);
+
   // Auto-play hanzi when card is flipped to back
   useEffect(() => {
     if (state.isFlipped && currentCard && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(currentCard.hanzi);
       u.lang = 'zh-CN';
-      u.rate = 0.85;
+      u.rate = playSpeed;
       window.speechSynthesis.speak(u);
     }
-  }, [state.isFlipped, currentCard?.hanzi]);
+  }, [state.isFlipped, currentCard?.hanzi, playSpeed]);
 
   const playCurrentCard = useCallback(() => {
     if (!currentCard || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(currentCard.hanzi);
     u.lang = 'zh-CN';
-    u.rate = 0.85;
+    u.rate = playSpeed;
     window.speechSynthesis.speak(u);
-  }, [currentCard]);
+  }, [currentCard, playSpeed]);
 
   // Reset answeredId and showPractice whenever card changes
   useEffect(() => {
@@ -524,6 +535,20 @@ export default function FlashcardView({
                 >
                   <ChevronRight size={18} />
                 </button>
+              </div>
+              {/* Speed control */}
+              <div className="speed-control">
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔊</span>
+                {([0.65, 0.85, 1.1] as const).map(speed => (
+                  <button
+                    key={speed}
+                    className={`speed-btn${playSpeed === speed ? ' active' : ''}`}
+                    onClick={() => handleSpeedChange(speed)}
+                    title={speed === 0.65 ? 'Lambat' : speed === 0.85 ? 'Normal' : 'Cepat'}
+                  >
+                    {speed === 0.65 ? 'Lambat' : speed === 0.85 ? 'Normal' : 'Cepat'}
+                  </button>
+                ))}
               </div>
               {/* Keyboard hint */}
               {state.mode === 'study' && !state.isComplete && deck.length > 0 && (
