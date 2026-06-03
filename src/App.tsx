@@ -136,6 +136,11 @@ function App() {
     showToast('Kata harian disimpan!', 'success');
   }, [addWord, showToast]);
 
+  const handleToggleTheme = useCallback(() => {
+    const next: ThemeId = theme.startsWith('dark') ? 'light-pastel' : 'dark-astronaut';
+    setTheme(next);
+  }, [theme, setTheme]);
+
   return (
     <>
       <div className="theme-bg-layer">
@@ -168,6 +173,8 @@ function App() {
           playAudio={playAudio}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
         />
 
         {/* Main content with tab navigation */}

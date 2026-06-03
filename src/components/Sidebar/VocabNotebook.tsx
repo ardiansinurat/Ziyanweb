@@ -13,21 +13,6 @@ interface Props {
   onAddWord?: (word: Omit<VocabWord, 'id' | 'savedAt'>) => void;
 }
 
-type SortOption = 'newest' | 'oldest' | 'az';
-type SourceFilter = 'all' | 'chat' | 'daily' | 'manual';
-
-const SORT_LABELS: Record<SortOption, string> = {
-  newest: 'Terbaru',
-  oldest: 'Terlama',
-  az: 'A-Z',
-};
-
-const SOURCE_LABELS: Record<SourceFilter, string> = {
-  all: 'Semua',
-  chat: 'Chat',
-  daily: 'Harian',
-  manual: 'Manual',
-};
 
 function playWord(hanzi: string) {
   if (!('speechSynthesis' in window)) return;
@@ -40,20 +25,15 @@ function playWord(hanzi: string) {
 
 export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWord }: Props) {
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortOption>('newest');
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'alpha' | 'source'>('date');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'chat' | 'daily' | 'manual'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHanzi, setNewHanzi] = useState('');
   const [newPinyin, setNewPinyin] = useState('');
   const [newMeaning, setNewMeaning] = useState('');
 
-  const filtered = useMemo(() => {
+  const filteredWords = useMemo(() => {
     let result = [...words];
-
-    // Source filter
-    if (sourceFilter !== 'all') {
-      result = result.filter(w => (w as any).source === sourceFilter);
-    }
 
     // Search filter
     if (search.trim()) {
@@ -66,17 +46,16 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
       );
     }
 
-    // Sort
-    if (sort === 'newest') {
-      result.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
-    } else if (sort === 'oldest') {
-      result.sort((a, b) => (a.savedAt ?? 0) - (b.savedAt ?? 0));
-    } else if (sort === 'az') {
-      result.sort((a, b) => a.hanzi.localeCompare(b.hanzi));
-    }
-
     return result;
-  }, [words, search, sort, sourceFilter]);
+  }, [words, search]);
+
+  const displayWords = [...filteredWords]
+    .filter(w => sourceFilter === 'all' || (w as any).source === sourceFilter)
+    .sort((a, b) => {
+      if (sortBy === 'alpha') return a.hanzi.localeCompare(b.hanzi);
+      if (sortBy === 'source') return ((a as any).source ?? '').localeCompare((b as any).source ?? '');
+      return (b.savedAt ?? 0) - (a.savedAt ?? 0); // newest first (default)
+    });
 
   const handleExport = () => {
     if (words.length === 0) return;
@@ -145,28 +124,28 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
         />
       </div>
 
-      {/* Controls row */}
-      <div className="vocab-controls">
-        <div className="vocab-filter-group">
-          {(Object.keys(SOURCE_LABELS) as SourceFilter[]).map(s => (
-            <button
-              key={s}
-              className={`vocab-filter-btn ${sourceFilter === s ? 'active' : ''}`}
-              onClick={() => setSourceFilter(s)}
-            >
-              {SOURCE_LABELS[s]}
-            </button>
-          ))}
-        </div>
-        <select
-          className="vocab-sort-select"
-          value={sort}
-          onChange={e => setSort(e.target.value as SortOption)}
-        >
-          {(Object.keys(SORT_LABELS) as SortOption[]).map(s => (
-            <option key={s} value={s}>{SORT_LABELS[s]}</option>
-          ))}
-        </select>
+      {/* Sort and filter row */}
+      <div className="vocab-sort-row">
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Urutkan:</span>
+        {(['date', 'alpha', 'source'] as const).map(s => (
+          <button
+            key={s}
+            className={`vocab-sort-btn${sortBy === s ? ' active' : ''}`}
+            onClick={() => setSortBy(s)}
+          >
+            {s === 'date' ? 'Terbaru' : s === 'alpha' ? 'A-Z' : 'Sumber'}
+          </button>
+        ))}
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', alignSelf: 'center', marginLeft: 6 }}>Filter:</span>
+        {(['all', 'chat', 'daily', 'manual'] as const).map(src => (
+          <button
+            key={src}
+            className={`vocab-sort-btn${sourceFilter === src ? ' active' : ''}`}
+            onClick={() => setSourceFilter(src)}
+          >
+            {src === 'all' ? 'Semua' : src === 'chat' ? '💬' : src === 'daily' ? '📅' : '✏️'}
+          </button>
+        ))}
       </div>
 
       {/* Add word button */}
@@ -224,10 +203,10 @@ export function VocabNotebook({ words, onRemove, playAudio: _playAudio, onAddWor
 
       {/* Word list */}
       <div className="vocab-list">
-        {filtered.length === 0 ? (
+        {displayWords.length === 0 ? (
           <p className="vocab-empty">Tidak ada kata yang cocok.</p>
         ) : (
-          filtered.map(word => (
+          displayWords.map(word => (
             <div key={word.id} className="vocab-item">
               <div className="vocab-item-top">
                 <div className="vocab-item-main">
