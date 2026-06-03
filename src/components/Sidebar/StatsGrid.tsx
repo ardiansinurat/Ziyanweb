@@ -4,6 +4,16 @@
 
 import { Flame, Target, BookOpen, MessageSquare } from 'lucide-react';
 
+function getStreakMessage(days: number): { text: string; hot: boolean } {
+  if (days === 0) return { text: 'Mulai hari ini!', hot: false };
+  if (days === 1) return { text: 'Bagus! Lanjutkan!', hot: false };
+  if (days < 3) return { text: 'Terus semangat!', hot: false };
+  if (days < 7) return { text: `${days} hari berturut!`, hot: true };
+  if (days < 14) return { text: 'Luar biasa! 🎉', hot: true };
+  if (days < 30) return { text: 'Kamu keren! 🚀', hot: true };
+  return { text: 'LEGENDA! 👑', hot: true };
+}
+
 interface Props {
   streakDays: number;
   accuracy: number;
@@ -26,6 +36,9 @@ export function StatsGrid({ streakDays, accuracy, totalWords, totalMessages }: P
           {streakDays}{streakDays > 0 ? ' 🔥' : ''}
         </span>
         <span className="stat-label">Streak</span>
+        <span className={`stat-streak-msg${getStreakMessage(streakDays).hot ? ' hot' : ''}`}>
+          {getStreakMessage(streakDays).text}
+        </span>
       </div>
 
       <div
@@ -35,6 +48,9 @@ export function StatsGrid({ streakDays, accuracy, totalWords, totalMessages }: P
         <Target className="stat-icon" size={26} />
         <span className="stat-value">{accuracy}%</span>
         <span className="stat-label">Akurasi</span>
+        <span className="stat-streak-msg">
+          {accuracy >= 90 ? 'Sempurna! 🎯' : accuracy >= 70 ? 'Bagus! 👍' : accuracy >= 50 ? 'Terus belajar! 💪' : accuracy > 0 ? 'Jangan menyerah! 🌟' : ''}
+        </span>
         <div className="stat-progress-bar" title={`${accuracy}% akurasi`}>
           <div
             className="stat-progress-fill"
